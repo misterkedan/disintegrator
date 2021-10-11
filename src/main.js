@@ -1,11 +1,11 @@
 import { controls } from './controls';
 import { gui } from './gui';
 import { render } from './render';
+import { settings } from './settings';
 import { stage } from './stage';
 
-import { Ticker } from './animation/Ticker';
 import { generator } from './scene/generator';
-import { settings } from './settings';
+import { Ticker } from './animation/Ticker';
 
 let ticker;
 
@@ -39,7 +39,7 @@ function resize() {
 
 function animate( time ) {
 
-	const toUpdate = [ render ];
+	const toUpdate = [ render, generator ];
 	toUpdate.forEach( item => item.update( time ) );
 
 	if ( time > settings.loopDuration ) ticker.reset();

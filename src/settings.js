@@ -3,11 +3,10 @@ import { generator } from './scene/generator';
 
 let settings;
 
-const DEFAULT_GEOMETRY = 'torusKnot';
 const defaults = {
 
 	loopDuration: 3000,
-	geometry: DEFAULT_GEOMETRY,
+	geometry: 'torus',
 
 };
 
@@ -20,7 +19,6 @@ function deepCopy( object ) {
 function reset() {
 
 	settings = { ...deepCopy( defaults ), reset, random };
-	settings.geometry = DEFAULT_GEOMETRY;
 
 }
 
