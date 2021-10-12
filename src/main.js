@@ -20,7 +20,7 @@ function init() {
 	window.addEventListener( 'resize', resize );
 	resize();
 
-	ticker = new Ticker( animate, 60 );
+	ticker = new Ticker( animate, 0 );
 	ticker.start();
 
 	control.ticker = ticker;

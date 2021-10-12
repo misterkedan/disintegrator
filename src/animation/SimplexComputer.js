@@ -1,6 +1,6 @@
 import { FloatPack } from './FloatPack';
 import { TextureComputer } from './TextureComputer';
-import simplex3d from '../glsl/noise/simplex3d.glsl';
+import simplex3D from '../glsl/noise/simplex3D.glsl';
 
 class SimplexComputer extends TextureComputer {
 
@@ -38,22 +38,23 @@ SimplexComputer.shader = /*glsl*/`
 
 	uniform float uMin;
 	uniform float uMax;
+	uniform float uScale;
 	uniform float uSeed;
 	uniform sampler2D tData;
 
     ${ FloatPack.glsl }
-	${ simplex3d }
+	${ simplex3D }
 
     void main() {
         
         vec2 uv = gl_FragCoord.xy / resolution.xy;
 
-		float uScale = 7.0;
-		float noise = 0.5 + simplex3d( 
+		float noise = 0.5 + simplex3D( 
 			uv.x * uScale, 
 			uv.y * uScale, 
 			uSeed * uScale
 		) / 2.0;
+		
 		float data = noise * ( uMax - uMin ) + uMin;
 
         gl_FragColor = pack( data );

@@ -16,12 +16,13 @@ import { stage } from './stage';
 let control;
 
 const geometries = {
-	box: () => new BoxBufferGeometry( 1.6, 1.6, 1.6, 8, 8, 8 ),
-	circle: () => new CircleBufferGeometry( 1, 128 ),
-	plane: () => new PlaneBufferGeometry( 1.8, 1.8, 10, 10 ),
-	sphere: () => new SphereBufferGeometry( 1, 64, 64 ),
+	box: () => new BoxBufferGeometry( 1.6, 1.6, 1.6, 64, 64, 64 ),
+	circle: () => new CircleBufferGeometry( 1, 720 ),
+	plane: () => new PlaneBufferGeometry( 1.8, 1.8, 160, 160 ),
+	sphere: () => new SphereBufferGeometry( 1, 128, 128 ),
 	torus: () => new TorusBufferGeometry( 0.8, 0.35, 64, 64 ),
-	torusKnot: () => new TorusKnotBufferGeometry( 0.7, 0.27, 96, 48 ),
+	torusKnot: () => new TorusKnotBufferGeometry( 0.7, 0.25, 256, 64 ),
+	//torusKnot: () => new TorusKnotBufferGeometry( 0.7, 0.27, 256, 256 ),
 };
 
 function generate() {
@@ -37,14 +38,16 @@ function generate() {
 
 	if ( control.mesh ) stage.remove( control.mesh );
 
+	//window.alert( window.devicePixelRatio );
+
 	const mesh = new Disintegration( geometry, material, {
 		maxEdgeLength: 0.05,
 		maxIterations: 6,
-		fillers: 5,
+		density: 5,
 	} );
 
 	//console.log( geometry );
-	//console.log( mesh.geometry.attributes.position.count );
+	console.log( mesh.geometry.attributes.position.count );
 
 	stage.add( mesh );
 	control.mesh = mesh;

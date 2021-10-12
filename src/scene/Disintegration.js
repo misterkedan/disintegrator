@@ -4,6 +4,7 @@ import { mergeBufferGeometries } from 'three/examples/jsm/utils/BufferGeometryUt
 
 import { FloatPack } from '../animation/FloatPack';
 import { SimplexComputer } from '../animation/SimplexComputer';
+import rand2D from '../glsl/noise/rand2D.glsl';
 
 class Disintegration extends Mesh {
 
@@ -12,13 +13,13 @@ class Disintegration extends Mesh {
 			maxEdgeLength = 0.05,
 			maxIterations = 6,
 			duration = 1500,
-			fillers = 8,
+			density = 8,
 		} = {} ) {
-
-		geometry = Disintegration.fill( geometry, fillers );
 
 		const tesselator = new TessellateModifier( maxEdgeLength, maxIterations );
 		geometry = tesselator.modify( geometry );
+
+		geometry = Disintegration.densify( geometry, density );
 
 		super( geometry, material );
 
@@ -33,13 +34,12 @@ class Disintegration extends Mesh {
 
 		const { geometry } = this;
 
-
 		const positions = geometry.attributes.position.array;
 		const totalVertices = geometry.attributes.position.count;
 		const totalFaces = Math.ceil( totalVertices / 3 );
 		//console.log( totalFaces );
 
-		const aDelay = new Float32Array( totalVertices );
+		const aFace = new Float32Array( totalVertices );
 		const aDataCoord = new Float32Array( totalVertices * 2 );
 		const aCentroid = new Float32Array( totalVertices * 3 );
 
@@ -51,8 +51,6 @@ class Disintegration extends Mesh {
 			const i2 = i * 2;
 			const i3 = i * 3;
 
-			const delay = Math.random();
-
 			const dataCoordX = ( face % totalFaces ) / totalFaces;
 			const dataCoordY = ~ ~ ( face / totalFaces ) / totalFaces;
 			// ~ ~ is a less-legible, more performant bitwise Math.floor()
@@ -62,7 +60,7 @@ class Disintegration extends Mesh {
 
 				const j = i + ( vertex );
 
-				aDelay[ j ] = delay;
+				aFace[ j ] = face;
 
 				const j2 = i2 + ( 2 * vertex );
 
@@ -79,11 +77,12 @@ class Disintegration extends Mesh {
 
 		}
 
-		geometry.setAttribute( 'aDelay', new BufferAttribute( aDelay, 1 ) );
+		geometry.setAttribute( 'aFace', new BufferAttribute( aFace, 1 ) );
 		geometry.setAttribute( 'aDataCoord', new BufferAttribute( aDataCoord, 2 ) );
 		geometry.setAttribute( 'aCentroid', new BufferAttribute( aCentroid, 3 ) );
 
-		const noiseOptions = { min: - 2, max: 2, scale: 0.1 };
+		const noiseOptions = { min: - 2, max: 2, scale: 7 };
+
 		const noiseX = new SimplexComputer( totalFaces, noiseOptions );
 		const noiseY = new SimplexComputer( totalFaces, noiseOptions );
 		const noiseZ = new SimplexComputer( totalFaces, noiseOptions );
@@ -133,37 +132,52 @@ class Disintegration extends Mesh {
 			uniform sampler2D tNoiseY;
 			uniform sampler2D tNoiseZ;
 
-			attribute float aDelay;
+			attribute float aFace;
 			attribute vec2 aDataCoord;
 			attribute vec3 aCentroid;
 
 			${FloatPack.glsl}
+			${rand2D}
 
 		`;
 
 		const modifications = /*glsl*/`
 
-			float globalDelay = 500.0;
-			float triangleDelay = aDelay * 200.0;
-			float delay = globalDelay + triangleDelay;
+			vec3 uWind = vec3( 0.0, -1.0, -4.0 );
+			float uTimeNoise = 150.0;
+			float uTimeVariance = 0.15;
+			float uDelay = 500.0;
+
+			float noiseX = unpack( texture2D( tNoiseX, aDataCoord ) );
+			float noiseY = unpack( texture2D( tNoiseY, aDataCoord ) );
+			float noiseZ = unpack( texture2D( tNoiseZ, aDataCoord ) );
+			float noiseXYZ = mix( noiseX, mix( noiseY, noiseZ, 0.5 ), 0.5 );
+
+			float noiseDelay = rand2D( aFace, 0.618 ) * uTimeNoise;
+			float delay = uDelay + noiseDelay;
+
+			float noiseDuration = clamp( 
+				noiseXYZ * uDuration * uTimeVariance,
+				0.0, 
+				uDuration - 0.01
+			);
+			float duration = uDuration - noiseDuration;
 			
-			float time = clamp( uTime - delay, 0.0, uDuration );
-			float progress =  clamp( time / uDuration, 0.0, 1.0 );
+			float time = clamp( uTime - delay, 0.0, duration );
+			float progress =  clamp( time / duration, 0.0, 1.0 );
+
 			//progress = 1.0 - progress; // Invert
+			//uWind *= -1.0;
 		
 			float scale = clamp( 1.0 - progress, 0.0, 1.0 );
 			transformed -= aCentroid;
 			transformed *= scale;
 			transformed += aCentroid;
 		
-			float noiseX = unpack( texture2D( tNoiseX, aDataCoord ) );
-			float noiseY = unpack( texture2D( tNoiseY, aDataCoord ) );
-			float noiseZ = unpack( texture2D( tNoiseZ, aDataCoord ) );
-		
-			transformed.x += noiseX * progress;
-			transformed.y += noiseY * progress;
-			transformed.z += noiseZ * progress - progress * 4.0;
-			
+			transformed.x += ( noiseX + uWind.x ) * progress;
+			transformed.y += ( noiseY + uWind.y ) * progress;
+			transformed.z += ( noiseZ + uWind.z ) * progress;
+
 		`;
 
 		this.chunks = { declarations, modifications };
@@ -178,12 +192,12 @@ class Disintegration extends Mesh {
 
 }
 
-Disintegration.fill = ( geometry, fillers ) => {
+Disintegration.densify = ( geometry, density ) => {
 
 	if (
-		fillers < 1 ||
-		! Number.isInteger( fillers ) ||
-		! Number.isFinite( fillers )
+		density < 1 ||
+		! Number.isInteger( density ) ||
+		! Number.isFinite( density )
 	) return geometry;
 
 	geometry.computeBoundingBox();
@@ -196,12 +210,12 @@ Disintegration.fill = ( geometry, fillers ) => {
 	);
 	const step = minSize * 0.01;
 
-	let layeredGeometries = Array.from( { length: fillers }, ( _, i ) => {
+	let layeredGeometries = Array.from( { length: density }, ( _, i ) => {
 
-		const filler = geometry.clone();
+		const clone = geometry.clone();
 		const scale = 1 - step * ( i + 1 );
-		filler.scale( scale, scale, scale );
-		return filler;
+		clone.scale( scale, scale, scale );
+		return clone;
 
 	} );
 	layeredGeometries.push( geometry );
