@@ -1,20 +1,20 @@
 import { Raycaster, Vector2 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { render } from './render';
-import { generator } from './scene/generator';
+import { control } from './control';
 import { settings } from './settings';
 import { stage } from './stage';
 
-let controls;
+let pointer;
 
 const { camera, scene } = stage;
-const pointer = new Vector2();
+const cursor = new Vector2();
 const raycaster = new Raycaster();
 
 function onPointerMove( event ) {
 
-	pointer.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-	pointer.y = 1 - ( event.clientY / window.innerHeight ) * 2;
+	cursor.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+	cursor.y = 1 - ( event.clientY / window.innerHeight ) * 2;
 
 }
 
@@ -22,10 +22,10 @@ function onPointerUp( event ) {
 
 	onPointerMove( event );
 
-	if ( controls.intersects ) {
+	if ( pointer.intersects ) {
 
 		settings.random();
-		generator.generate();
+		control.generate();
 
 	}
 
@@ -43,21 +43,21 @@ function init() {
 	const { canvas } = render;
 	const orbit = new OrbitControls( camera, canvas );
 
-	controls.orbit = orbit;
+	pointer.orbit = orbit;
 
 	//canvas.addEventListener( 'pointermove', onPointerMove );
 	//canvas.addEventListener( 'pointerup', onPointerUp );
 
 }
 
-controls = {
+pointer = {
 	init, update,
 	get intersects() {
 
-		raycaster.setFromCamera( pointer, camera );
+		raycaster.setFromCamera( cursor, camera );
 		return raycaster.intersectObjects( scene.children, false ).length;
 
 	},
 };
 
-export { controls };
+export { pointer };

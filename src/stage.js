@@ -24,7 +24,7 @@ const camera = new PerspectiveCamera( fov, aspect, near, far );
 camera.position.set( 4, 3, 4 );
 camera.lookAt( 0, 0, 0 );
 
-// Resize
+// Functions
 
 function add( child ) {
 

@@ -1,23 +1,19 @@
 import {
 	BoxBufferGeometry,
 	CircleBufferGeometry,
-	DoubleSide,
 	MeshStandardMaterial,
 	PlaneBufferGeometry,
-	Points,
-	PointsMaterial,
 	SphereBufferGeometry,
 	TorusBufferGeometry,
 	TorusKnotBufferGeometry,
-	Vector3
 } from 'three';
-import { Ticker } from '../animation/Ticker';
 
-import { settings } from '../settings';
-import { stage } from '../stage';
-import { Disintegration } from './Disintegration';
+import { Disintegration } from './scene/Disintegration';
 
-let generator;
+import { settings } from './settings';
+import { stage } from './stage';
+
+let control;
 
 const geometries = {
 	box: () => new BoxBufferGeometry( 1.6, 1.6, 1.6, 8, 8, 8 ),
@@ -25,14 +21,12 @@ const geometries = {
 	plane: () => new PlaneBufferGeometry( 1.8, 1.8, 10, 10 ),
 	sphere: () => new SphereBufferGeometry( 1, 64, 64 ),
 	torus: () => new TorusBufferGeometry( 0.8, 0.35, 64, 64 ),
-	torusKnot: () => new TorusKnotBufferGeometry( 0.7, 0.27, 96, 32 ),
+	torusKnot: () => new TorusKnotBufferGeometry( 0.7, 0.27, 96, 48 ),
 };
 
 function generate() {
 
 	const geometry = geometries[ settings.geometry ]().toNonIndexed();
-
-	//console.log( geometry );
 
 	const material = new MeshStandardMaterial( {
 		//wireframe: true,
@@ -41,7 +35,7 @@ function generate() {
 		//side: DoubleSide,
 	} );
 
-	if ( generator.mesh ) stage.remove( generator.mesh );
+	if ( control.mesh ) stage.remove( control.mesh );
 
 	const mesh = new Disintegration( geometry, material, {
 		maxEdgeLength: 0.05,
@@ -49,12 +43,13 @@ function generate() {
 		fillers: 5,
 	} );
 
+	//console.log( geometry );
 	//console.log( mesh.geometry.attributes.position.count );
 
 	stage.add( mesh );
-	generator.mesh = mesh;
+	control.mesh = mesh;
 
-	if ( generator.ticker ) generator.ticker.reset();
+	if ( control.ticker ) control.ticker.reset();
 
 }
 
@@ -74,11 +69,25 @@ function random() {
 
 function update( time ) {
 
-	const { mesh } = generator;
+	const { mesh } = control;
 	if ( mesh ) mesh.update( time );
 
 }
 
-generator = { geometries, generate, reset, random, update };
+control = {
+	geometries,
+	generate, reset, random, update,
+	get geometry() {
 
-export { generator };
+		return settings.geometry;
+
+	},
+	set geometry( value ) {
+
+		settings.geometry = value;
+		generate();
+
+	}
+};
+
+export { control };

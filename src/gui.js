@@ -1,22 +1,19 @@
 import * as dat from 'dat.gui';
 
 //import { render } from './render';
-import { generator } from './scene/generator';
-import { settings } from './settings';
+import { control } from './control';
 
 const gui = new dat.GUI();
 
 gui.init = function () {
 
 	const gen = gui.addFolder( 'Generator' );
-	gen.add( settings, 'geometry', Object.keys( generator.geometries ) )
-		.onChange( generator.generate )
-		.listen();
+	gen.add( control, 'geometry', Object.keys( control.geometries ) ).listen();
 	gen.open();
 
 	const set = gui.addFolder( 'Settings' );
-	set.add( generator, 'reset' ).onFinishChange( generator.generate );
-	set.add( generator, 'random' ).onFinishChange( generator.generate );
+	set.add( control, 'reset' ).onFinishChange( control.generate );
+	set.add( control, 'random' ).onFinishChange( control.generate );
 	set.open();
 
 	/*

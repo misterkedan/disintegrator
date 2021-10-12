@@ -1,10 +1,10 @@
-import { controls } from './controls';
+import { pointer } from './pointer';
 import { gui } from './gui';
 import { render } from './render';
 import { settings } from './settings';
 import { stage } from './stage';
 
-import { generator } from './scene/generator';
+import { control } from './control';
 import { Ticker } from './animation/Ticker';
 
 let ticker;
@@ -12,8 +12,8 @@ let ticker;
 function init() {
 
 	render.init();
-	controls.init();
-	generator.generate();
+	pointer.init();
+	control.generate();
 
 	gui.init();
 
@@ -23,7 +23,7 @@ function init() {
 	ticker = new Ticker( animate, 60 );
 	ticker.start();
 
-	generator.ticker = ticker;
+	control.ticker = ticker;
 
 }
 
@@ -41,7 +41,7 @@ function resize() {
 
 function animate( time ) {
 
-	const toUpdate = [ render, controls, generator ];
+	const toUpdate = [ render, pointer, control ];
 	toUpdate.forEach( item => item.update( time ) );
 
 	if ( time > settings.loopDuration ) ticker.reset();

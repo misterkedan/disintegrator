@@ -1,5 +1,5 @@
 import vesuna from 'vesuna';
-import { generator } from './scene/generator';
+import { control } from './control';
 
 let settings;
 
@@ -24,7 +24,7 @@ function random() {
 
 	vesuna.autoseed();
 
-	settings.geometry = vesuna.item( Object.keys( generator.geometries ).filter(
+	settings.geometry = vesuna.item( Object.keys( control.geometries ).filter(
 		key => key !== settings.geometry
 	) );
 
