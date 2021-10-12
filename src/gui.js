@@ -9,12 +9,14 @@ const gui = new dat.GUI();
 gui.init = function () {
 
 	const gen = gui.addFolder( 'Generator' );
-	gen.add( settings, 'geometry', Object.keys( generator.geometries ) ).onChange( generator.generate );
+	gen.add( settings, 'geometry', Object.keys( generator.geometries ) )
+		.onChange( generator.generate )
+		.listen();
 	gen.open();
 
 	const set = gui.addFolder( 'Settings' );
-	set.add( settings, 'reset' ).onFinishChange( generator.generate );
-	set.add( settings, 'random' ).onFinishChange( generator.generate );
+	set.add( generator, 'reset' ).onFinishChange( generator.generate );
+	set.add( generator, 'random' ).onFinishChange( generator.generate );
 	set.open();
 
 	/*

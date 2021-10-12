@@ -23,6 +23,8 @@ function init() {
 	ticker = new Ticker( animate, 60 );
 	ticker.start();
 
+	generator.ticker = ticker;
+
 }
 
 function resize() {
@@ -39,7 +41,7 @@ function resize() {
 
 function animate( time ) {
 
-	const toUpdate = [ render, generator ];
+	const toUpdate = [ render, controls, generator ];
 	toUpdate.forEach( item => item.update( time ) );
 
 	if ( time > settings.loopDuration ) ticker.reset();

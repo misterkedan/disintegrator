@@ -1,16 +1,21 @@
 import { BufferAttribute, Mesh } from 'three';
 import { TessellateModifier } from 'three/examples/jsm/modifiers/TessellateModifier';
+import { mergeBufferGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils';
 
 import { FloatPack } from '../animation/FloatPack';
 import { SimplexComputer } from '../animation/SimplexComputer';
 
 class Disintegration extends Mesh {
 
-	constructor( geometry, material, {
-		maxEdgeLength = 0.05,
-		maxIterations = 6,
-		duration = 1500,
-	} = {} ) {
+	constructor(
+		geometry, material, {
+			maxEdgeLength = 0.05,
+			maxIterations = 6,
+			duration = 1500,
+			fillers = 8,
+		} = {} ) {
+
+		geometry = Disintegration.fill( geometry, fillers );
 
 		const tesselator = new TessellateModifier( maxEdgeLength, maxIterations );
 		geometry = tesselator.modify( geometry );
@@ -28,9 +33,11 @@ class Disintegration extends Mesh {
 
 		const { geometry } = this;
 
+
 		const positions = geometry.attributes.position.array;
 		const totalVertices = geometry.attributes.position.count;
-		const totalFaces = totalVertices / 3;
+		const totalFaces = Math.ceil( totalVertices / 3 );
+		//console.log( totalFaces );
 
 		const aDelay = new Float32Array( totalVertices );
 		const aDataCoord = new Float32Array( totalVertices * 2 );
@@ -76,7 +83,7 @@ class Disintegration extends Mesh {
 		geometry.setAttribute( 'aDataCoord', new BufferAttribute( aDataCoord, 2 ) );
 		geometry.setAttribute( 'aCentroid', new BufferAttribute( aCentroid, 3 ) );
 
-		const noiseOptions = { min: - 1, max: 1, scale: 0.1 };
+		const noiseOptions = { min: - 2, max: 2, scale: 0.1 };
 		const noiseX = new SimplexComputer( totalFaces, noiseOptions );
 		const noiseY = new SimplexComputer( totalFaces, noiseOptions );
 		const noiseZ = new SimplexComputer( totalFaces, noiseOptions );
@@ -137,7 +144,7 @@ class Disintegration extends Mesh {
 		const modifications = /*glsl*/`
 
 			float globalDelay = 500.0;
-			float triangleDelay = aDelay * 10.0;
+			float triangleDelay = aDelay * 200.0;
 			float delay = globalDelay + triangleDelay;
 			
 			float time = clamp( uTime - delay, 0.0, uDuration );
@@ -155,7 +162,7 @@ class Disintegration extends Mesh {
 		
 			transformed.x += noiseX * progress;
 			transformed.y += noiseY * progress;
-			transformed.z += noiseZ * progress - progress * 3.0;
+			transformed.z += noiseZ * progress - progress * 4.0;
 			
 		`;
 
@@ -170,6 +177,38 @@ class Disintegration extends Mesh {
 	}
 
 }
+
+Disintegration.fill = ( geometry, fillers ) => {
+
+	if (
+		fillers < 1 ||
+		! Number.isInteger( fillers ) ||
+		! Number.isFinite( fillers )
+	) return geometry;
+
+	geometry.computeBoundingBox();
+
+	const box = geometry.boundingBox;
+	const minSize = Math.min(
+		box.max.x - box.min.x,
+		box.max.y - box.min.y,
+		box.max.z - box.min.z,
+	);
+	const step = minSize * 0.01;
+
+	let layeredGeometries = Array.from( { length: fillers }, ( _, i ) => {
+
+		const filler = geometry.clone();
+		const scale = 1 - step * ( i + 1 );
+		filler.scale( scale, scale, scale );
+		return filler;
+
+	} );
+	layeredGeometries.push( geometry );
+
+	return mergeBufferGeometries( layeredGeometries );
+
+};
 
 Disintegration.computeCentroid =
 	( i, pos ) => ( pos[ i ] + pos[ i + 3 ] + pos[ i + 6 ] ) / 3;

@@ -10,28 +10,29 @@ const defaults = {
 
 };
 
-function deepCopy( object ) {
-
-	return JSON.parse( JSON.stringify( object ) );
-
-}
-
 function reset() {
 
-	settings = { ...deepCopy( defaults ), reset, random };
+	Object.entries( defaults ).forEach( ( [ key, value ] ) => {
+
+		settings[ key ] = value;
+
+	} );
 
 }
 
 function random() {
 
 	vesuna.autoseed();
-	const newGeometry = vesuna.item( Object.keys( generator.geometries ).filter( key => key !== settings.geometry ) );
 
-	reset();
-
-	settings.geometry = newGeometry;
+	settings.geometry = vesuna.item( Object.keys( generator.geometries ).filter(
+		key => key !== settings.geometry
+	) );
 
 }
+
+settings = {
+	reset, random
+};
 
 reset();
 

@@ -1,12 +1,17 @@
 import {
 	BoxBufferGeometry,
 	CircleBufferGeometry,
+	DoubleSide,
 	MeshStandardMaterial,
 	PlaneBufferGeometry,
+	Points,
+	PointsMaterial,
 	SphereBufferGeometry,
 	TorusBufferGeometry,
-	TorusKnotBufferGeometry
+	TorusKnotBufferGeometry,
+	Vector3
 } from 'three';
+import { Ticker } from '../animation/Ticker';
 
 import { settings } from '../settings';
 import { stage } from '../stage';
@@ -15,35 +20,55 @@ import { Disintegration } from './Disintegration';
 let generator;
 
 const geometries = {
-	box: () => new BoxBufferGeometry( 1.6, 1.6, 1.6, 196, 196, 196 ),
-	cicle: () => new CircleBufferGeometry( 1, 10000 ),
-	plane: () => new PlaneBufferGeometry( 1.8, 1.8, 320, 320 ),
-	sphere: () => new SphereBufferGeometry( 1, 420, 420 ),
-	torus: () => new TorusBufferGeometry( 0.8, 0.35, 720, 240 ),
-	torusKnot: () => new TorusKnotBufferGeometry( 0.7, 0.28, 1024, 320 ),
+	box: () => new BoxBufferGeometry( 1.6, 1.6, 1.6, 8, 8, 8 ),
+	circle: () => new CircleBufferGeometry( 1, 128 ),
+	plane: () => new PlaneBufferGeometry( 1.8, 1.8, 10, 10 ),
+	sphere: () => new SphereBufferGeometry( 1, 64, 64 ),
+	torus: () => new TorusBufferGeometry( 0.8, 0.35, 64, 64 ),
+	torusKnot: () => new TorusKnotBufferGeometry( 0.7, 0.27, 96, 32 ),
 };
 
 function generate() {
 
-	const geometry = geometries[ settings.geometry ]();
+	const geometry = geometries[ settings.geometry ]().toNonIndexed();
+
+	//console.log( geometry );
 
 	const material = new MeshStandardMaterial( {
 		//wireframe: true,
 		//transparent: true,
 		//opacity: 0.5,
+		//side: DoubleSide,
 	} );
 
 	if ( generator.mesh ) stage.remove( generator.mesh );
 
 	const mesh = new Disintegration( geometry, material, {
-		maxEdgeLength: 1,
-		maxIterations: 1,
+		maxEdgeLength: 0.05,
+		maxIterations: 6,
+		fillers: 5,
 	} );
 
-	console.log( mesh.geometry.attributes.position.count );
+	//console.log( mesh.geometry.attributes.position.count );
 
 	stage.add( mesh );
 	generator.mesh = mesh;
+
+	if ( generator.ticker ) generator.ticker.reset();
+
+}
+
+function reset() {
+
+	settings.reset();
+	generate();
+
+}
+
+function random() {
+
+	settings.random();
+	generate();
 
 }
 
@@ -54,6 +79,6 @@ function update( time ) {
 
 }
 
-generator = { geometries, generate, update };
+generator = { geometries, generate, reset, random, update };
 
 export { generator };

@@ -16,8 +16,6 @@ function onPointerMove( event ) {
 	pointer.x = ( event.clientX / window.innerWidth ) * 2 - 1;
 	pointer.y = 1 - ( event.clientY / window.innerHeight ) * 2;
 
-	document.body.style.cursor = ( controls.intersects ) ? 'pointer' : 'auto';
-
 }
 
 function onPointerUp( event ) {
@@ -33,6 +31,12 @@ function onPointerUp( event ) {
 
 }
 
+function update() {
+
+	//document.body.style.cursor = ( controls.intersects ) ? 'pointer' : 'auto';
+
+}
+
 function init() {
 
 	const { camera } = stage;
@@ -41,13 +45,13 @@ function init() {
 
 	controls.orbit = orbit;
 
-	canvas.addEventListener( 'pointermove', onPointerMove );
-	canvas.addEventListener( 'pointerup', onPointerUp );
+	//canvas.addEventListener( 'pointermove', onPointerMove );
+	//canvas.addEventListener( 'pointerup', onPointerUp );
 
 }
 
 controls = {
-	init,
+	init, update,
 	get intersects() {
 
 		raycaster.setFromCamera( pointer, camera );
