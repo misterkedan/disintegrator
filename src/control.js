@@ -43,7 +43,7 @@ function generate() {
 	const mesh = new Disintegration( geometry, material, settings );
 	control.mesh = mesh;
 	stage.add( mesh );
-	if ( settings.debug ) console.log( `<${mesh.totalVertices} vertices>` );
+	if ( settings.debug ) console.log( { vertices: mesh.totalVertices } );
 
 	autoLoopAfter();
 
@@ -66,7 +66,13 @@ function reset() {
 
 function random() {
 
+	const randomize = ( min, max, step ) =>
+		Math.round( vesuna.random( min, max ) / step ) * step;
+
 	vesuna.autoseed();
+	if ( settings.debug ) console.log( { seed: vesuna.seed } );
+
+	// Done before reset to avoid repeating the same geometry
 	const geometry = vesuna.item( Object.keys( control.geometries ).filter(
 		key => key !== settings.geometry
 	) );
@@ -74,8 +80,23 @@ function random() {
 	settings.reset();
 
 	settings.geometry = geometry;
+	Object.entries( settings.random ).forEach( ( [ key, value ] ) => {
+
+		const { min, max, step } = value;
+		settings[ key ] = randomize( min, max, step );
+
+	} );
+	zeroWind( false );
+	if ( vesuna.random() > 0.25 ) {
+
+		const coord = vesuna.item( [ 'x', 'y', 'z' ] );
+		const { min, max, step } = settings.ranges[ coord ];
+		settings.wind[ coord ] = randomize( min, max, step );
+
+	}
 
 	generate();
+	gui.updateDisplay();
 
 }
 
@@ -96,12 +117,12 @@ function autoLoopAfter() {
 
 }
 
-function zeroWind() {
+function zeroWind( updateDisplay = true ) {
 
 	settings.wind.x = 0;
 	settings.wind.y = 0;
 	settings.wind.z = 0;
-	gui.updateDisplay();
+	if ( updateDisplay ) gui.updateDisplay();
 
 }
 

@@ -34,13 +34,17 @@ function resize() {
 	const height = innerHeight;
 
 	const toResize = [ stage, render ];
-	toResize.forEach( item => item.resize( width, height, devicePixelRatio ) );
+	toResize.forEach( item => item.resize(
+		width,
+		height,
+		devicePixelRatio
+	) );
 
 }
 
 function animate( time ) {
 
-	const toUpdate = [ render, pointer, control ];
+	const toUpdate = [ render, control ];
 	toUpdate.forEach( item => item.update( time ) );
 
 }
