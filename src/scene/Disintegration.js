@@ -251,7 +251,7 @@ class Disintegration extends Mesh {
 Disintegration.densify = ( geometry, density ) => {
 
 	if (
-		density < 1 ||
+		density < 2 ||
 		! Number.isInteger( density ) ||
 		! Number.isFinite( density )
 	) return geometry;
@@ -266,7 +266,7 @@ Disintegration.densify = ( geometry, density ) => {
 	);
 	const step = minSize * 0.01;
 
-	let layeredGeometries = Array.from( { length: density }, ( _, i ) => {
+	let layeredGeometries = Array.from( { length: density - 1 }, ( _, i ) => {
 
 		const clone = geometry.clone();
 		const scale = 1 - step * ( i + 1 );
@@ -274,7 +274,7 @@ Disintegration.densify = ( geometry, density ) => {
 		return clone;
 
 	} );
-	layeredGeometries.push( geometry );
+	layeredGeometries.unshift( geometry );
 
 	return mergeBufferGeometries( layeredGeometries );
 

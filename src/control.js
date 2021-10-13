@@ -117,6 +117,9 @@ control = {
 		generate();
 	},
 
+	get density() { return settings.density; },
+	set density( value ) { settings.density = value; },
+
 	get spread() { return settings.spread },
 	set spread( value ) { 
 		settings.spread = value;

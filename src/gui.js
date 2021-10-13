@@ -7,7 +7,10 @@ const gui = new dat.GUI();
 gui.init = function () {
 
 	const geometry = gui.addFolder( 'Geometry' );
-	geometry.add( control, 'geometry', Object.keys( control.geometries ) ).listen();
+	geometry.add( control, 'geometry', Object.keys( control.geometries ) )
+		.listen();
+	geometry.add( control, 'density', 1, 10 ).step( 1 )
+		.onFinishChange( control.generate );
 	geometry.open();
 
 	const spread = gui.addFolder( 'Spread' );
