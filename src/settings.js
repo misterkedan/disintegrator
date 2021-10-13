@@ -1,12 +1,32 @@
-import vesuna from 'vesuna';
-import { control } from './control';
+import { Vector3 } from 'three';
 
 let settings;
 
+const windX = 0;
+const windY = 0;
+const windZ = - 3.5;
+const wind = new Vector3( windX, windY, windZ );
+
 const defaults = {
 
-	loopDuration: 3000,
+	debug: true,
+
 	geometry: 'torus',
+	maxEdgeLength: 0.05,
+	maxIterations: 6,
+	density: 4,
+
+	spread: 2,
+	volatility: 12,
+
+	delay: 500,
+	duration: 1250,
+	timeNoise: 250,
+	timeVariance: 0.5,
+
+	wind, windX, windY, windZ,
+
+	loopAfter: 3000,
 
 };
 
@@ -20,20 +40,7 @@ function reset() {
 
 }
 
-function random() {
-
-	vesuna.autoseed();
-
-	settings.geometry = vesuna.item( Object.keys( control.geometries ).filter(
-		key => key !== settings.geometry
-	) );
-
-}
-
-settings = {
-	reset, random
-};
-
+settings = { reset };
 reset();
 
 export { settings };

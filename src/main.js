@@ -44,8 +44,6 @@ function animate( time ) {
 	const toUpdate = [ render, pointer, control ];
 	toUpdate.forEach( item => item.update( time ) );
 
-	if ( time > settings.loopDuration ) ticker.reset();
-
 }
 
 init();

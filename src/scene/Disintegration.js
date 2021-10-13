@@ -1,6 +1,7 @@
-import { BufferAttribute, Mesh } from 'three';
+import { BufferAttribute, Mesh, Vector3 } from 'three';
 import { TessellateModifier } from 'three/examples/jsm/modifiers/TessellateModifier';
 import { mergeBufferGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils';
+import vesuna from 'vesuna';
 
 import { FloatPack } from '../animation/FloatPack';
 import { SimplexComputer } from '../animation/SimplexComputer';
@@ -10,10 +11,25 @@ class Disintegration extends Mesh {
 
 	constructor(
 		geometry, material, {
-			maxEdgeLength = 0.05,
-			maxIterations = 6,
-			duration = 1500,
-			density = 8,
+
+			// Tesselation
+			maxEdgeLength,
+			maxIterations,
+
+			// Densify
+			density,
+
+			// GPGPU
+			spread,
+			volatility,
+
+			// Uniforms
+			timeNoise,
+			timeVariance,
+			delay,
+			wind,
+			duration,
+
 		} = {} ) {
 
 		const tesselator = new TessellateModifier( maxEdgeLength, maxIterations );
@@ -23,7 +39,11 @@ class Disintegration extends Mesh {
 
 		super( geometry, material );
 
-		this.duration = duration;
+		this.options = {
+			spread, volatility,
+			delay, duration, timeNoise, timeVariance, wind
+		};
+
 		this.setAttributes();
 		this.setChunks();
 		material.onBeforeCompile = this.onBeforeCompile.bind( this );
@@ -37,7 +57,6 @@ class Disintegration extends Mesh {
 		const positions = geometry.attributes.position.array;
 		const totalVertices = geometry.attributes.position.count;
 		const totalFaces = Math.ceil( totalVertices / 3 );
-		//console.log( totalFaces );
 
 		const aFace = new Float32Array( totalVertices );
 		const aDataCoord = new Float32Array( totalVertices * 2 );
@@ -81,32 +100,62 @@ class Disintegration extends Mesh {
 		geometry.setAttribute( 'aDataCoord', new BufferAttribute( aDataCoord, 2 ) );
 		geometry.setAttribute( 'aCentroid', new BufferAttribute( aCentroid, 3 ) );
 
-		const noiseOptions = { min: - 2, max: 2, scale: 7 };
+		// GPGPU
 
-		const noiseX = new SimplexComputer( totalFaces, noiseOptions );
-		const noiseY = new SimplexComputer( totalFaces, noiseOptions );
-		const noiseZ = new SimplexComputer( totalFaces, noiseOptions );
+		const x = new SimplexComputer( totalFaces );
+		const y = new SimplexComputer( totalFaces );
+		const z = new SimplexComputer( totalFaces );
+		const duration = new SimplexComputer( totalFaces );
+		this.gpgpu = { x, y, z, duration };
+		this.compute();
 
-		noiseX.compute();
-		noiseY.compute();
-		noiseZ.compute();
+	}
 
-		this.noise = {
-			x: noiseX.texture,
-			y: noiseY.texture,
-			z: noiseZ.texture,
+	compute() {
+
+		const { gpgpu, shader, options } = this;
+
+		const { spread, volatility } = options;
+		const spreadUniforms = {
+			uMin:   { value: - spread   },
+			uMax:   { value: spread     },
+			uScale: { value: volatility },
 		};
+
+		Object.entries( gpgpu ).forEach( ( [ key, computer ] ) => {
+
+			computer.uniforms = JSON.parse( JSON.stringify( spreadUniforms ) );
+			vesuna.seed = key;
+			computer.uniforms.uSeed = { value: vesuna.random() };
+			computer.compute();
+
+		} );
+
+		if ( ! shader ) return;
+		const { uniforms } = shader;
+		uniforms.tNoiseX.value = gpgpu.x.texture;
+		uniforms.tNoiseY.value = gpgpu.y.texture;
+		uniforms.tNoiseZ.value = gpgpu.z.texture;
+		uniforms.tNoiseDuration.value = gpgpu.duration.texture;
 
 	}
 
 	onBeforeCompile( shader ) {
 
+		const { gpgpu: gpgpu, options } = this;
+		const { duration, timeNoise, timeVariance, delay, wind } = options;
+
 		Object.assign( shader.uniforms, {
 			uTime: { value: 0 },
-			uDuration: { value: this.duration },
-			tNoiseX: { value: this.noise.x },
-			tNoiseY: { value: this.noise.y },
-			tNoiseZ: { value: this.noise.z },
+			uTimeNoise: { value: timeNoise },
+			uTimeVariance: { value: timeVariance },
+			uDelay: { value: delay },
+			uDuration: { value: duration },
+			uWind: { value: wind },
+			tNoiseX: { value: gpgpu.x.texture },
+			tNoiseY: { value: gpgpu.y.texture },
+			tNoiseZ: { value: gpgpu.z.texture },
+			tNoiseDuration: { value: gpgpu.duration.texture },
 		} );
 
 		const main = 'void main()';
@@ -127,10 +176,15 @@ class Disintegration extends Mesh {
 		const declarations = /*glsl*/`
 
 			uniform float uTime;
+			uniform float uTimeNoise;
+			uniform float uTimeVariance;
+			uniform float uDelay;
 			uniform float uDuration;
+			uniform vec3 uWind;
 			uniform sampler2D tNoiseX;
 			uniform sampler2D tNoiseY;
 			uniform sampler2D tNoiseZ;
+			uniform sampler2D tNoiseDuration;
 
 			attribute float aFace;
 			attribute vec2 aDataCoord;
@@ -143,40 +197,37 @@ class Disintegration extends Mesh {
 
 		const modifications = /*glsl*/`
 
-			vec3 uWind = vec3( 0.0, -1.0, -4.0 );
-			float uTimeNoise = 150.0;
-			float uTimeVariance = 0.15;
-			float uDelay = 500.0;
-
 			float noiseX = unpack( texture2D( tNoiseX, aDataCoord ) );
 			float noiseY = unpack( texture2D( tNoiseY, aDataCoord ) );
 			float noiseZ = unpack( texture2D( tNoiseZ, aDataCoord ) );
-			float noiseXYZ = mix( noiseX, mix( noiseY, noiseZ, 0.5 ), 0.5 );
-
-			float noiseDelay = rand2D( aFace, 0.618 ) * uTimeNoise;
-			float delay = uDelay + noiseDelay;
-
-			float noiseDuration = clamp( 
-				noiseXYZ * uDuration * uTimeVariance,
+			float noiseDuration = unpack( texture2D( tNoiseDuration, aDataCoord ) );
+			noiseDuration = clamp(
+				noiseDuration * uTimeVariance * uDuration,
 				0.0, 
 				uDuration - 0.01
 			);
 			float duration = uDuration - noiseDuration;
-			
+
+			float noiseDelay = rand2D( aFace, 0.618 ) * uTimeNoise;
+			float delay = uDelay + noiseDelay;
+
 			float time = clamp( uTime - delay, 0.0, duration );
 			float progress =  clamp( time / duration, 0.0, 1.0 );
 
-			//progress = 1.0 - progress; // Invert
-			//uWind *= -1.0;
+			vec3 wind = uWind;
+
+			// Invert
+			//progress = 1.0 - progress; 
+			//wind *= -1.0;
 		
 			float scale = clamp( 1.0 - progress, 0.0, 1.0 );
 			transformed -= aCentroid;
 			transformed *= scale;
 			transformed += aCentroid;
 		
-			transformed.x += ( noiseX + uWind.x ) * progress;
-			transformed.y += ( noiseY + uWind.y ) * progress;
-			transformed.z += ( noiseZ + uWind.z ) * progress;
+			transformed.x += ( noiseX + wind.x ) * progress;
+			transformed.y += ( noiseY + wind.y ) * progress;
+			transformed.z += ( noiseZ + wind.z ) * progress;
 
 		`;
 
@@ -187,6 +238,12 @@ class Disintegration extends Mesh {
 	update( time ) {
 
 		this.shader.uniforms.uTime.value = time;
+
+	}
+
+	get totalVertices() {
+
+		return this.geometry.attributes.position.count;
 
 	}
 
@@ -224,7 +281,7 @@ Disintegration.densify = ( geometry, density ) => {
 
 };
 
-Disintegration.computeCentroid =
-	( i, pos ) => ( pos[ i ] + pos[ i + 3 ] + pos[ i + 6 ] ) / 3;
+Disintegration.computeCentroid = ( i, pos ) =>
+	( pos[ i ] + pos[ i + 3 ] + pos[ i + 6 ] ) / 3;
 
 export { Disintegration };

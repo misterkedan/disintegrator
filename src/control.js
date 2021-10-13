@@ -7,6 +7,8 @@ import {
 	TorusBufferGeometry,
 	TorusKnotBufferGeometry,
 } from 'three';
+import vesuna from 'vesuna';
+import { gui } from './gui';
 
 import { Disintegration } from './scene/Disintegration';
 
@@ -20,9 +22,8 @@ const geometries = {
 	circle: () => new CircleBufferGeometry( 1, 720 ),
 	plane: () => new PlaneBufferGeometry( 1.8, 1.8, 160, 160 ),
 	sphere: () => new SphereBufferGeometry( 1, 128, 128 ),
-	torus: () => new TorusBufferGeometry( 0.8, 0.35, 64, 64 ),
+	torus: () => new TorusBufferGeometry( 0.8, 0.35, 128, 128 ),
 	torusKnot: () => new TorusKnotBufferGeometry( 0.7, 0.25, 256, 64 ),
-	//torusKnot: () => new TorusKnotBufferGeometry( 0.7, 0.27, 256, 256 ),
 };
 
 function generate() {
@@ -38,16 +39,9 @@ function generate() {
 
 	if ( control.mesh ) stage.remove( control.mesh );
 
-	//window.alert( window.devicePixelRatio );
+	const mesh = new Disintegration( geometry, material, settings );
 
-	const mesh = new Disintegration( geometry, material, {
-		maxEdgeLength: 0.05,
-		maxIterations: 6,
-		density: 5,
-	} );
-
-	//console.log( geometry );
-	console.log( mesh.geometry.attributes.position.count );
+	if ( settings.debug ) console.log( `<${mesh.totalVertices} vertices>` );
 
 	stage.add( mesh );
 	control.mesh = mesh;
@@ -59,38 +53,106 @@ function generate() {
 function reset() {
 
 	settings.reset();
+
+	settings.wind.x = settings.windX;
+	settings.wind.y = settings.windY;
+	settings.wind.z = settings.windZ;
+	gui.updateDisplay();
+
 	generate();
 
 }
 
 function random() {
 
-	settings.random();
+	settings.reset();
+
+	vesuna.autoseed();
+
+	settings.geometry = vesuna.item( Object.keys( control.geometries ).filter(
+		key => key !== settings.geometry
+	) );
+
 	generate();
 
 }
 
 function update( time ) {
 
-	const { mesh } = control;
+	const { mesh, ticker, loopAfter } = control;
 	if ( mesh ) mesh.update( time );
+	if ( loopAfter > 0 && time > loopAfter ) ticker.reset();
+
+}
+
+function autoLoopAfter() {
+
+	let { loopAfter, duration, timeNoise, delay } = control;
+
+	if ( loopAfter === 0 ) return;
+	control.loopAfter = duration + timeNoise + delay * 2;
+	//gui.updateDisplay();
 
 }
 
 control = {
 	geometries,
 	generate, reset, random, update,
-	get geometry() {
 
-		return settings.geometry;
-
-	},
+	/*eslint-disable*/
+	get geometry() { return settings.geometry; },
 	set geometry( value ) {
-
 		settings.geometry = value;
 		generate();
+	},
 
-	}
+	get spread() { return settings.spread },
+	set spread( value ) { 
+		settings.spread = value;
+		control.mesh.options.spread = value;
+		control.mesh.compute();
+	},
+
+	get volatility() { return settings.volatility },
+	set volatility( value ) { 
+		settings.volatility = value;
+		control.mesh.options.volatility = value;
+		control.mesh.compute();
+	},
+
+	get delay() { return settings.delay },
+	set delay( value ) { 
+		settings.delay = value;
+		control.mesh.shader.uniforms.uDelay.value = value;
+		autoLoopAfter();
+	},
+		
+	get duration() { return settings.duration },
+	set duration( value ) { 
+		settings.duration = value;
+		control.mesh.shader.uniforms.uDuration.value = value;
+		autoLoopAfter();
+	},
+
+	get timeNoise() { return settings.timeNoise },
+	set timeNoise( value ) {
+		settings.timeNoise = value;
+		control.mesh.shader.uniforms.uTimeNoise.value = value;
+		autoLoopAfter();
+	},
+
+	get timeVariance() { return settings.timeVariance },
+	set timeVariance( value ) {
+		settings.timeVariance = value;
+		control.mesh.shader.uniforms.uTimeVariance.value = value;
+	},
+
+	get wind() { return settings.wind },
+	set wind( value ) { settings.wind = value },
+
+	get loopAfter() { return settings.loopAfter },
+	set loopAfter( value ) { settings.loopAfter = value; },
+	/*eslint-enable*/
 };
 
 export { control };

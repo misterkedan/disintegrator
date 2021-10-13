@@ -20,19 +20,18 @@ class SimplexComputer extends TextureComputer {
 
 	}
 
-	get seed() {
-
-		return this.uniforms.uSeed.value;
-
-	}
-
-	set seed( value ) {
-
-		this.uniforms.uSeed.value = value;
-
-	}
-
 }
+
+SimplexComputer.formatUniforms = ( { min, max, scale, seed } ) => {
+
+	return {
+		uMin:   { value: min   },
+		uMax:   { value: max   },
+		uScale: { value: scale },
+		uSeed:  { value: seed  },
+	};
+
+};
 
 SimplexComputer.shader = /*glsl*/`
 
@@ -54,7 +53,7 @@ SimplexComputer.shader = /*glsl*/`
 			uv.y * uScale, 
 			uSeed * uScale
 		) / 2.0;
-		
+
 		float data = noise * ( uMax - uMin ) + uMin;
 
         gl_FragColor = pack( data );
