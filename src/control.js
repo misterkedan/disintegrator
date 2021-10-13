@@ -81,25 +81,34 @@ function random() {
 
 function update( time ) {
 
-	const { mesh, ticker, loopAfter } = control;
+	const { mesh, ticker, loopDuration } = control;
 	if ( mesh ) mesh.update( time );
-	if ( loopAfter > 0 && time > loopAfter ) ticker.reset();
+	if ( loopDuration > 0 && time > loopDuration ) ticker.reset();
 
 }
 
 function autoLoopAfter() {
 
-	let { loopAfter, duration, timeNoise, delay } = control;
+	let { loopDuration, duration, stagger, delay } = control;
 
-	if ( loopAfter === 0 ) return;
-	control.loopAfter = duration + timeNoise + delay * 2;
-	//gui.updateDisplay();
+	if ( loopDuration === 0 ) return;
+	control.loopDuration = duration + stagger + delay * 2;
+
+}
+
+function zeroWind() {
+
+	settings.wind.x = 0;
+	settings.wind.y = 0;
+	settings.wind.z = 0;
+	gui.updateDisplay();
 
 }
 
 control = {
 	geometries,
 	generate, reset, random, update,
+	zeroWind,
 
 	/*eslint-disable*/
 	get geometry() { return settings.geometry; },
@@ -115,10 +124,10 @@ control = {
 		control.mesh.compute();
 	},
 
-	get volatility() { return settings.volatility },
-	set volatility( value ) { 
-		settings.volatility = value;
-		control.mesh.options.volatility = value;
+	get turbulence() { return settings.turbulence },
+	set turbulence( value ) { 
+		settings.turbulence = value;
+		control.mesh.options.turbulence = value;
 		control.mesh.compute();
 	},
 
@@ -136,24 +145,24 @@ control = {
 		autoLoopAfter();
 	},
 
-	get timeNoise() { return settings.timeNoise },
-	set timeNoise( value ) {
-		settings.timeNoise = value;
-		control.mesh.shader.uniforms.uTimeNoise.value = value;
+	get stagger() { return settings.stagger },
+	set stagger( value ) {
+		settings.stagger = value;
+		control.mesh.shader.uniforms.uStagger.value = value;
 		autoLoopAfter();
 	},
 
-	get timeVariance() { return settings.timeVariance },
-	set timeVariance( value ) {
-		settings.timeVariance = value;
-		control.mesh.shader.uniforms.uTimeVariance.value = value;
+	get dynamics() { return settings.dynamics },
+	set dynamics( value ) {
+		settings.dynamics = value;
+		control.mesh.shader.uniforms.uDynamics.value = value;
 	},
 
 	get wind() { return settings.wind },
 	set wind( value ) { settings.wind = value },
 
-	get loopAfter() { return settings.loopAfter },
-	set loopAfter( value ) { settings.loopAfter = value; },
+	get loopDuration() { return settings.loopDuration },
+	set loopDuration( value ) { settings.loopDuration = value; },
 
 	get grid() { return settings.grid },
 	set grid( value ) { 

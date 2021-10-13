@@ -18,16 +18,16 @@ const defaults = {
 	density: 4,
 
 	spread: 2,
-	volatility: 12,
+	turbulence: 12,
 
-	delay: 500,
-	duration: 1250,
-	timeNoise: 300,
-	timeVariance: 0.4,
+	delay: 1000,
+	duration: 1200,
+	stagger: 300,
+	dynamics: 0.7,
 
 	wind, windX, windY, windZ,
 
-	loopAfter: 3000,
+	loopDuration: 3500,
 
 };
 

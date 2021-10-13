@@ -21,11 +21,11 @@ class Disintegration extends Mesh {
 
 			// GPGPU
 			spread,
-			volatility,
+			turbulence,
 
 			// Uniforms
-			timeNoise,
-			timeVariance,
+			stagger,
+			dynamics,
 			delay,
 			wind,
 			duration,
@@ -40,8 +40,8 @@ class Disintegration extends Mesh {
 		super( geometry, material );
 
 		this.options = {
-			spread, volatility,
-			delay, duration, timeNoise, timeVariance, wind
+			spread, turbulence,
+			delay, duration, stagger, dynamics, wind
 		};
 
 		this.setAttributes();
@@ -107,8 +107,7 @@ class Disintegration extends Mesh {
 		const x = new SimplexComputer( totalFaces );
 		const y = new SimplexComputer( totalFaces );
 		const z = new SimplexComputer( totalFaces );
-		const duration = new SimplexComputer( totalFaces );
-		this.gpgpu = { x, y, z, duration };
+		this.gpgpu = { x, y, z };
 		this.compute();
 
 	}
@@ -117,11 +116,11 @@ class Disintegration extends Mesh {
 
 		const { gpgpu, shader, options } = this;
 
-		const { spread, volatility } = options;
+		const { spread, turbulence } = options;
 		const spreadUniforms = {
 			uMin:   { value: - spread   },
 			uMax:   { value: spread     },
-			uScale: { value: volatility },
+			uScale: { value: turbulence },
 		};
 
 		Object.entries( gpgpu ).forEach( ( [ key, computer ] ) => {
@@ -138,26 +137,24 @@ class Disintegration extends Mesh {
 		uniforms.tNoiseX.value = gpgpu.x.texture;
 		uniforms.tNoiseY.value = gpgpu.y.texture;
 		uniforms.tNoiseZ.value = gpgpu.z.texture;
-		uniforms.tNoiseDuration.value = gpgpu.duration.texture;
 
 	}
 
 	onBeforeCompile( shader ) {
 
 		const { gpgpu: gpgpu, options } = this;
-		const { duration, timeNoise, timeVariance, delay, wind } = options;
+		const { duration, stagger, dynamics, delay, wind } = options;
 
 		Object.assign( shader.uniforms, {
-			uTime: { value: 0 },
-			uTimeNoise: { value: timeNoise },
-			uTimeVariance: { value: timeVariance },
-			uDelay: { value: delay },
-			uDuration: { value: duration },
-			uWind: { value: wind },
-			tNoiseX: { value: gpgpu.x.texture },
-			tNoiseY: { value: gpgpu.y.texture },
-			tNoiseZ: { value: gpgpu.z.texture },
-			tNoiseDuration: { value: gpgpu.duration.texture },
+			uTime: 		{ value: 0 },
+			uStagger: 	{ value: stagger },
+			uDynamics: 	{ value: dynamics },
+			uDelay: 	{ value: delay },
+			uDuration: 	{ value: duration },
+			uWind: 		{ value: wind },
+			tNoiseX: 	{ value: gpgpu.x.texture },
+			tNoiseY: 	{ value: gpgpu.y.texture },
+			tNoiseZ: 	{ value: gpgpu.z.texture },
 		} );
 
 		const main = 'void main()';
@@ -178,15 +175,14 @@ class Disintegration extends Mesh {
 		const declarations = /*glsl*/`
 
 			uniform float uTime;
-			uniform float uTimeNoise;
-			uniform float uTimeVariance;
+			uniform float uStagger;
+			uniform float uDynamics;
 			uniform float uDelay;
 			uniform float uDuration;
 			uniform vec3 uWind;
 			uniform sampler2D tNoiseX;
 			uniform sampler2D tNoiseY;
 			uniform sampler2D tNoiseZ;
-			uniform sampler2D tNoiseDuration;
 
 			attribute float aNoise;
 			attribute vec2 aDataCoord;
@@ -199,18 +195,15 @@ class Disintegration extends Mesh {
 
 		const modifications = /*glsl*/`
 
-			float noiseX = unpack( texture2D( tNoiseX, aDataCoord ) );
-			float noiseY = unpack( texture2D( tNoiseY, aDataCoord ) );
-			float noiseZ = unpack( texture2D( tNoiseZ, aDataCoord ) );
-			float noiseDuration = unpack( texture2D( tNoiseDuration, aDataCoord ) );
-			noiseDuration = clamp(
-				noiseDuration * uTimeVariance * uDuration,
-				0.0, 
-				uDuration - 0.01
+			float bias = 0.9;
+			float noiseDuration = clamp(
+				( 1.0 - aNoise ) * uDynamics * uDuration,
+				0.0,
+				0.9 * uDuration
 			);
 			float duration = uDuration - noiseDuration;
 
-			float noiseDelay = aNoise * uTimeNoise;
+			float noiseDelay = aNoise * uStagger;
 			float delay = uDelay + noiseDelay;
 
 			float time = clamp( uTime - delay, 0.0, duration );
@@ -227,6 +220,10 @@ class Disintegration extends Mesh {
 			transformed *= scale;
 			transformed += aCentroid;
 		
+			float noiseX = unpack( texture2D( tNoiseX, aDataCoord ) );
+			float noiseY = unpack( texture2D( tNoiseY, aDataCoord ) );
+			float noiseZ = unpack( texture2D( tNoiseZ, aDataCoord ) );
+			
 			transformed.x += ( noiseX + wind.x ) * progress;
 			transformed.y += ( noiseY + wind.y ) * progress;
 			transformed.z += ( noiseZ + wind.z ) * progress;
