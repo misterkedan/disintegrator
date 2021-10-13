@@ -1,4 +1,4 @@
-import { BufferAttribute, Mesh, Vector3 } from 'three';
+import { BufferAttribute, Mesh } from 'three';
 import { TessellateModifier } from 'three/examples/jsm/modifiers/TessellateModifier';
 import { mergeBufferGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils';
 import vesuna from 'vesuna';
@@ -58,7 +58,7 @@ class Disintegration extends Mesh {
 		const totalVertices = geometry.attributes.position.count;
 		const totalFaces = Math.ceil( totalVertices / 3 );
 
-		const aFace = new Float32Array( totalVertices );
+		const aNoise = new Float32Array( totalVertices );
 		const aDataCoord = new Float32Array( totalVertices * 2 );
 		const aCentroid = new Float32Array( totalVertices * 3 );
 
@@ -75,11 +75,13 @@ class Disintegration extends Mesh {
 			// ~ ~ is a less-legible, more performant bitwise Math.floor()
 			// Used only because we're dealing with large arrays
 
+			const noise = Math.random();
+
 			for ( let vertex = 0; vertex < 3; vertex ++ ) {
 
 				const j = i + ( vertex );
 
-				aFace[ j ] = face;
+				aNoise[ j ] = noise;
 
 				const j2 = i2 + ( 2 * vertex );
 
@@ -96,7 +98,7 @@ class Disintegration extends Mesh {
 
 		}
 
-		geometry.setAttribute( 'aFace', new BufferAttribute( aFace, 1 ) );
+		geometry.setAttribute( 'aNoise', new BufferAttribute( aNoise, 1 ) );
 		geometry.setAttribute( 'aDataCoord', new BufferAttribute( aDataCoord, 2 ) );
 		geometry.setAttribute( 'aCentroid', new BufferAttribute( aCentroid, 3 ) );
 
@@ -186,7 +188,7 @@ class Disintegration extends Mesh {
 			uniform sampler2D tNoiseZ;
 			uniform sampler2D tNoiseDuration;
 
-			attribute float aFace;
+			attribute float aNoise;
 			attribute vec2 aDataCoord;
 			attribute vec3 aCentroid;
 
@@ -208,7 +210,7 @@ class Disintegration extends Mesh {
 			);
 			float duration = uDuration - noiseDuration;
 
-			float noiseDelay = rand2D( aFace, 0.618 ) * uTimeNoise;
+			float noiseDelay = aNoise * uTimeNoise;
 			float delay = uDelay + noiseDelay;
 
 			float time = clamp( uTime - delay, 0.0, duration );

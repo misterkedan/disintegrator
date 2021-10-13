@@ -1,6 +1,7 @@
 import {
 	BoxBufferGeometry,
 	CircleBufferGeometry,
+	DoubleSide,
 	MeshStandardMaterial,
 	PlaneBufferGeometry,
 	SphereBufferGeometry,
@@ -31,20 +32,20 @@ function generate() {
 	const geometry = geometries[ settings.geometry ]().toNonIndexed();
 
 	const material = new MeshStandardMaterial( {
+		side: DoubleSide,
+
 		//wireframe: true,
 		//transparent: true,
 		//opacity: 0.5,
-		//side: DoubleSide,
 	} );
 
 	if ( control.mesh ) stage.remove( control.mesh );
-
 	const mesh = new Disintegration( geometry, material, settings );
-
+	control.mesh = mesh;
+	stage.add( mesh );
 	if ( settings.debug ) console.log( `<${mesh.totalVertices} vertices>` );
 
-	stage.add( mesh );
-	control.mesh = mesh;
+	autoLoopAfter();
 
 	if ( control.ticker ) control.ticker.reset();
 
@@ -65,13 +66,14 @@ function reset() {
 
 function random() {
 
-	settings.reset();
-
 	vesuna.autoseed();
-
-	settings.geometry = vesuna.item( Object.keys( control.geometries ).filter(
+	const geometry = vesuna.item( Object.keys( control.geometries ).filter(
 		key => key !== settings.geometry
 	) );
+
+	settings.reset();
+
+	settings.geometry = geometry;
 
 	generate();
 
@@ -152,6 +154,12 @@ control = {
 
 	get loopAfter() { return settings.loopAfter },
 	set loopAfter( value ) { settings.loopAfter = value; },
+
+	get grid() { return settings.grid },
+	set grid( value ) { 
+		settings.grid = value;
+		stage.grid.visible = value;
+	},
 	/*eslint-enable*/
 };
 

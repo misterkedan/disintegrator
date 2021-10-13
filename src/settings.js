@@ -10,6 +10,7 @@ const wind = new Vector3( windX, windY, windZ );
 const defaults = {
 
 	debug: true,
+	grid: true,
 
 	geometry: 'torus',
 	maxEdgeLength: 0.05,
@@ -21,8 +22,8 @@ const defaults = {
 
 	delay: 500,
 	duration: 1250,
-	timeNoise: 250,
-	timeVariance: 0.5,
+	timeNoise: 300,
+	timeVariance: 0.4,
 
 	wind, windX, windY, windZ,
 

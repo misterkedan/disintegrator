@@ -1,7 +1,6 @@
 import { pointer } from './pointer';
 import { gui } from './gui';
 import { render } from './render';
-import { settings } from './settings';
 import { stage } from './stage';
 
 import { control } from './control';

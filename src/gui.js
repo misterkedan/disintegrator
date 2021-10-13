@@ -30,8 +30,9 @@ gui.init = function () {
 	anim.open();
 
 	const set = gui.addFolder( 'Settings' );
-	set.add( control, 'reset' ).onFinishChange( control.generate );
-	set.add( control, 'random' ).onFinishChange( control.generate );
+	set.add( control, 'grid' );
+	set.add( control, 'reset' );
+	set.add( control, 'random' );
 	set.open();
 
 	const { innerWidth, devicePixelRatio } = window;
