@@ -3,12 +3,11 @@ import { Color, HemisphereLight, PerspectiveCamera, Scene } from 'three';
 // Scene
 
 const scene = new Scene();
-scene.background = new Color( 0x222222 );
+scene.background = new Color( 0x34343a );
 
 // Lights
 
-
-const hemisphere = new HemisphereLight( 0xffffff, 0x444444, 1.2 );
+const hemisphere = new HemisphereLight( 0xffffee, 0x303135, 2 );
 scene.add( hemisphere );
 
 const lights = { hemisphere };
@@ -21,7 +20,7 @@ const near = 0.1;
 const far = 1000;
 
 const camera = new PerspectiveCamera( fov, aspect, near, far );
-camera.position.set( 4.5, 3.5, 4.5 );
+camera.position.set( 3.2, 3.2, 4.2 );
 camera.lookAt( 0, 0, 0 );
 
 // Functions

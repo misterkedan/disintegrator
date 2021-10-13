@@ -1,6 +1,5 @@
 import * as dat from 'dat.gui';
 
-//import { render } from './render';
 import { control } from './control';
 
 const gui = new dat.GUI();
@@ -12,8 +11,8 @@ gui.init = function () {
 	geometry.open();
 
 	const spread = gui.addFolder( 'Spread' );
-	spread.add( control, 'spread', 0, 10 ).step( 0.1 );
-	spread.add( control, 'volatility', 0, 20 ).step( 0.1 );
+	spread.add( control, 'spread', 1, 10 ).step( 0.1 );
+	spread.add( control, 'volatility', 1, 20 ).step( 0.1 );
 	spread.add( control, 'timeNoise', 0, 500 ).step( 5 );
 	spread.add( control, 'timeVariance', 0, 1 ).step( 0.01 );
 	spread.open();
@@ -34,18 +33,6 @@ gui.init = function () {
 	set.add( control, 'reset' ).onFinishChange( control.generate );
 	set.add( control, 'random' ).onFinishChange( control.generate );
 	set.open();
-
-	/*
-	const { adjustments } = render.post;
-	const floatStep = 0.001;
-	const adjust = gui.addFolder( 'Color' );
-	adjust.add( adjustments, 'hue', 0, Math.PI * 2 ).step( floatStep );
-	adjust.add( adjustments, 'saturation', 	0, 3 ).step( floatStep );
-	adjust.add( adjustments, 'vibrance', 	0, 3 ).step( floatStep );
-	adjust.add( adjustments, 'brightness', 	0, 3 ).step( floatStep );
-	adjust.add( adjustments, 'contrast', 	0, 3 ).step( floatStep );
-	adjust.open();
-	*/
 
 	const { innerWidth, devicePixelRatio } = window;
 	const ratio = devicePixelRatio || 1;

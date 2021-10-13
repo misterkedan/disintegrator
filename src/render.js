@@ -1,4 +1,4 @@
-import { ACESFilmicToneMapping, WebGLRenderer } from 'three';
+import { ACESFilmicToneMapping, Vector2, WebGLRenderer } from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { TextureComputer } from './animation/TextureComputer';
@@ -24,6 +24,14 @@ const composer = new EffectComposer( renderer );
 function init() {
 
 	const { scene, camera } = stage;
+
+	const { innerWidth, innerHeight, devicePixelRatio } = window;
+	const ratio = devicePixelRatio || 1;
+
+	const width = Math.round( innerWidth / ratio );
+	const height = Math.round( innerHeight / ratio );
+	const resolution = new Vector2( width, height );
+	render.resolution = resolution;
 
 	const post = {
 		render: new RenderPass( scene, camera ),
