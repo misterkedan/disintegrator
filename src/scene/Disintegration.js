@@ -5,7 +5,6 @@ import vesuna from 'vesuna';
 
 import { FloatPack } from '../animation/FloatPack';
 import { SimplexComputer } from '../animation/SimplexComputer';
-import rand2D from '../glsl/noise/rand2D.glsl';
 
 class Disintegration extends Mesh {
 
@@ -189,7 +188,6 @@ class Disintegration extends Mesh {
 			attribute vec3 aCentroid;
 
 			${FloatPack.glsl}
-			${rand2D}
 
 		`;
 

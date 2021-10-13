@@ -4,7 +4,7 @@ import { settings } from './settings';
 // Scene
 
 const scene = new Scene();
-scene.background = new Color( 0x34343a );
+scene.background = new Color( 0x1a1a1f );
 scene.fog = new Fog( scene.background, 1, 100 );
 
 // Lights
@@ -17,19 +17,19 @@ const lights = { hemisphere };
 // Camera
 
 const fov = 45;
-const aspect = 1;
+const aspect = window.innerWidth / window.innerHeight;
 const near = 0.1;
 const far = 100;
 
 const camera = new PerspectiveCamera( fov, aspect, near, far );
-camera.position.set( 3.2, 3.2, 4.2 );
 camera.lookAt( 0, 0, 0 );
+adaptCameraToRatio();
 
 // Grid
 
 const size = 210;
 const divisions = 100;
-const grid = new GridHelper( size, divisions, 0x84848a, 0x44444a );
+const grid = new GridHelper( size, divisions, 0x5a5a5f, 0x28282d );
 grid.position.y = - 2;
 scene.add( grid );
 grid.visible = settings.grid;
@@ -45,6 +45,16 @@ function add( child ) {
 function remove( child ) {
 
 	scene.remove( child );
+
+}
+
+function adaptCameraToRatio() {
+
+	const scale = camera.aspect >= 1 ? 1 : 1.5;
+	const x = 3.5 * scale;
+	const y = 2.5 * scale;
+	const z = 4.5 * scale;
+	camera.position.set( x, y, z );
 
 }
 

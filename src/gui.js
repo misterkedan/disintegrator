@@ -41,7 +41,7 @@ gui.init = function () {
 
 	const { innerWidth, devicePixelRatio } = window;
 	const ratio = devicePixelRatio || 1;
-	const smallWidth = ( Math.ceil( innerWidth / ratio ) < 640 );
+	const smallWidth = ( Math.ceil( innerWidth / ratio ) < 1024 );
 	if ( smallWidth ) gui.close();
 
 };
