@@ -14,7 +14,7 @@ import { settings } from './settings';
 // Scene
 
 const scene = new Scene();
-scene.background = new Color( 0x222228 );
+scene.background = new Color( 0x222227 );
 scene.fog = new Fog( scene.background, 1, 60 );
 
 // Lights
@@ -41,7 +41,7 @@ const grid = ( function () {
 
 	const size = 100;
 	const divisions = 40;
-	const color = 0x303036;
+	const color = 0x303035;
 
 	if ( window.devicePixelRatio === 1 )
 		return new GridHelper( size, divisions, color, color );

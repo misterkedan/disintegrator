@@ -6,7 +6,7 @@ html {
 
 body {
 	font-family: 'Source Code Pro', monospace;
-    background: #222226;
+    background: #222225;
     color: #fff;
 	-webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -59,7 +59,7 @@ body, canvas {
 		opacity: 0.75;
 		outline-width: 0.7rem;
 		font-weight: 900;
-		background: #222226;
+		background: #222225;
 	}
 
 	#random:active{
