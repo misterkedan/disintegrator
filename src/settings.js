@@ -20,6 +20,7 @@ const defaults = {
 	spread: 2,
 	turbulence: 12,
 
+	reversed: false,
 	delay: 1000,
 	duration: 1200,
 	stagger: 300,

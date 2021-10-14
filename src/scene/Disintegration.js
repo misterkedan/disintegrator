@@ -11,12 +11,12 @@ class Disintegration extends Mesh {
 	constructor(
 		geometry, material, {
 
+			density,
+			reversed,
+
 			// Tesselation
 			maxEdgeLength,
 			maxIterations,
-
-			// Densify
-			density,
 
 			// GPGPU
 			spread,
@@ -38,14 +38,16 @@ class Disintegration extends Mesh {
 
 		super( geometry, material );
 
+
 		this.options = {
+			reversed,
 			spread, turbulence,
 			delay, duration, stagger, dynamics, wind
 		};
 
 		this.setAttributes();
 		this.setChunks();
-		material.onBeforeCompile = this.onBeforeCompile.bind( this );
+		this.material.onBeforeCompile = this.onBeforeCompile.bind( this );
 
 	}
 
@@ -139,9 +141,73 @@ class Disintegration extends Mesh {
 
 	}
 
+	setChunks() {
+
+		const declarations = /*glsl*/`
+
+			uniform float uTime;
+			uniform float uStagger;
+			uniform float uDynamics;
+			uniform float uDelay;
+			uniform float uDuration;
+			uniform vec3 uWind;
+			uniform sampler2D tNoiseX;
+			uniform sampler2D tNoiseY;
+			uniform sampler2D tNoiseZ;
+
+			attribute float aNoise;
+			attribute vec2 aDataCoord;
+			attribute vec3 aCentroid;
+
+			${FloatPack.glsl}
+
+		`;
+
+		const reverseChunk = ( this.options.reversed )
+			? 'progress = 1.0 - progress;'
+			: '';
+
+		const modifications = /*glsl*/`
+
+			float bias = 0.9;
+			float noiseDuration = clamp(
+				( 1.0 - aNoise ) * uDynamics * uDuration,
+				0.0,
+				0.9 * uDuration
+			);
+			float duration = uDuration - noiseDuration;
+
+			float noiseDelay = aNoise * uStagger;
+			float delay = uDelay + noiseDelay;
+
+			float time = clamp( uTime - delay, 0.0, duration );
+			float progress =  clamp( time / duration, 0.0, 1.0 );
+
+			${ reverseChunk }
+		
+			float scale = clamp( 1.0 - progress, 0.0, 1.0 );
+			transformed -= aCentroid;
+			transformed *= scale;
+			transformed += aCentroid;
+		
+			float noiseX = unpack( texture2D( tNoiseX, aDataCoord ) );
+			float noiseY = unpack( texture2D( tNoiseY, aDataCoord ) );
+			float noiseZ = unpack( texture2D( tNoiseZ, aDataCoord ) );
+			
+			transformed.x += ( noiseX + uWind.x ) * progress;
+			transformed.y += ( noiseY + uWind.y ) * progress;
+			transformed.z += ( noiseZ + uWind.z ) * progress;
+
+		`;
+
+		this.chunks = { declarations, modifications };
+		this.material.dispose();
+
+	}
+
 	onBeforeCompile( shader ) {
 
-		const { gpgpu: gpgpu, options } = this;
+		const { gpgpu, options } = this;
 		const { duration, stagger, dynamics, delay, wind } = options;
 
 		Object.assign( shader.uniforms, {
@@ -169,72 +235,18 @@ class Disintegration extends Mesh {
 
 	}
 
-	setChunks() {
-
-		const declarations = /*glsl*/`
-
-			uniform float uTime;
-			uniform float uStagger;
-			uniform float uDynamics;
-			uniform float uDelay;
-			uniform float uDuration;
-			uniform vec3 uWind;
-			uniform sampler2D tNoiseX;
-			uniform sampler2D tNoiseY;
-			uniform sampler2D tNoiseZ;
-
-			attribute float aNoise;
-			attribute vec2 aDataCoord;
-			attribute vec3 aCentroid;
-
-			${FloatPack.glsl}
-
-		`;
-
-		const modifications = /*glsl*/`
-
-			float bias = 0.9;
-			float noiseDuration = clamp(
-				( 1.0 - aNoise ) * uDynamics * uDuration,
-				0.0,
-				0.9 * uDuration
-			);
-			float duration = uDuration - noiseDuration;
-
-			float noiseDelay = aNoise * uStagger;
-			float delay = uDelay + noiseDelay;
-
-			float time = clamp( uTime - delay, 0.0, duration );
-			float progress =  clamp( time / duration, 0.0, 1.0 );
-
-			vec3 wind = uWind;
-
-			// Invert
-			//progress = 1.0 - progress; 
-			//wind *= -1.0;
-		
-			float scale = clamp( 1.0 - progress, 0.0, 1.0 );
-			transformed -= aCentroid;
-			transformed *= scale;
-			transformed += aCentroid;
-		
-			float noiseX = unpack( texture2D( tNoiseX, aDataCoord ) );
-			float noiseY = unpack( texture2D( tNoiseY, aDataCoord ) );
-			float noiseZ = unpack( texture2D( tNoiseZ, aDataCoord ) );
-			
-			transformed.x += ( noiseX + wind.x ) * progress;
-			transformed.y += ( noiseY + wind.y ) * progress;
-			transformed.z += ( noiseZ + wind.z ) * progress;
-
-		`;
-
-		this.chunks = { declarations, modifications };
-
-	}
-
 	update( time ) {
 
 		this.shader.uniforms.uTime.value = time;
+
+	}
+
+	dispose() {
+
+		this.geometry.dispose();
+		this.material.dispose();
+		Object.values( this.gpgpu ).forEach( value => value.dispose() );
+
 
 	}
 

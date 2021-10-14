@@ -9,12 +9,44 @@ import {
 	TorusKnotBufferGeometry,
 } from 'three';
 import vesuna from 'vesuna';
-import { gui } from './gui';
 
 import { Disintegration } from './scene/Disintegration';
 
+import { gui } from './gui';
 import { settings } from './settings';
 import { stage } from './stage';
+
+/*-----------------------------------------------------------------------------/
+
+	Private
+
+/-----------------------------------------------------------------------------*/
+
+function autoLoopDuration() {
+
+	let { loopDuration, duration, stagger, delay } = control;
+
+	if ( loopDuration === 0 ) return;
+	control.loopDuration = duration + stagger + delay * 2;
+
+}
+
+function cleanup() {
+
+	const { mesh } = control;
+	if ( ! mesh ) return;
+
+	mesh.dispose();
+	stage.remove( mesh );
+	delete control.mesh;
+
+}
+
+/*-----------------------------------------------------------------------------/
+
+	Public
+
+/-----------------------------------------------------------------------------*/
 
 let control;
 
@@ -29,42 +61,22 @@ const geometries = {
 
 function generate() {
 
-
+	cleanup();
 
 	const geometry = geometries[ settings.geometry ]().toNonIndexed();
 
 	const material = new MeshStandardMaterial( {
 		side: DoubleSide,
-
-		//wireframe: true,
-		//transparent: true,
-		//opacity: 0.5,
 	} );
 
 	const mesh = new Disintegration( geometry, material, settings );
-
-	if ( control.mesh ) stage.remove( control.mesh );
-	delete control.mesh;
 	control.mesh = mesh;
 	stage.add( mesh );
 	if ( settings.debug ) console.log( { vertices: mesh.totalVertices } );
 
-	autoLoopAfter();
-
-	if ( control.ticker ) control.ticker.reset();
-
-}
-
-function reset() {
-
-	settings.reset();
-
-	settings.wind.x = settings.windX;
-	settings.wind.y = settings.windY;
-	settings.wind.z = settings.windZ;
+	autoLoopDuration();
 	gui.updateDisplay();
-
-	generate();
+	if ( control.ticker ) control.ticker.reset();
 
 }
 
@@ -82,7 +94,6 @@ function random() {
 	) );
 
 	settings.reset();
-
 	settings.geometry = geometry;
 	Object.entries( settings.random ).forEach( ( [ key, value ] ) => {
 
@@ -100,7 +111,20 @@ function random() {
 	}
 
 	generate();
-	gui.updateDisplay();
+
+}
+
+function reset() {
+
+	settings.reset();
+
+	settings.wind.x = settings.windX;
+	settings.wind.y = settings.windY;
+	settings.wind.z = settings.windZ;
+
+	control.grid = settings.grid;
+
+	generate();
 
 }
 
@@ -109,15 +133,6 @@ function update( time ) {
 	const { mesh, ticker, loopDuration } = control;
 	if ( mesh ) mesh.update( time );
 	if ( loopDuration > 0 && time > loopDuration ) ticker.reset();
-
-}
-
-function autoLoopAfter() {
-
-	let { loopDuration, duration, stagger, delay } = control;
-
-	if ( loopDuration === 0 ) return;
-	control.loopDuration = duration + stagger + delay * 2;
 
 }
 
@@ -132,8 +147,7 @@ function zeroWind( updateDisplay = true ) {
 
 control = {
 	geometries,
-	generate, reset, random, update,
-	zeroWind,
+	generate, random, reset, update, zeroWind,
 
 	/*eslint-disable*/
 	get geometry() { return settings.geometry; },
@@ -163,21 +177,21 @@ control = {
 	set delay( value ) { 
 		settings.delay = value;
 		control.mesh.shader.uniforms.uDelay.value = value;
-		autoLoopAfter();
+		autoLoopDuration();
 	},
 		
 	get duration() { return settings.duration },
 	set duration( value ) { 
 		settings.duration = value;
 		control.mesh.shader.uniforms.uDuration.value = value;
-		autoLoopAfter();
+		autoLoopDuration();
 	},
 
 	get stagger() { return settings.stagger },
 	set stagger( value ) {
 		settings.stagger = value;
 		control.mesh.shader.uniforms.uStagger.value = value;
-		autoLoopAfter();
+		autoLoopDuration();
 	},
 
 	get dynamics() { return settings.dynamics },
@@ -191,6 +205,14 @@ control = {
 
 	get loopDuration() { return settings.loopDuration },
 	set loopDuration( value ) { settings.loopDuration = value; },
+
+	get reversed() { return settings.reversed },
+	set reversed( value ) {
+		settings.reversed = value;
+		control.mesh.options.reversed = value;
+		control.mesh.setChunks();
+		
+	},
 
 	get grid() { return settings.grid },
 	set grid( value ) { 

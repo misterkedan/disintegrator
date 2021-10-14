@@ -52,6 +52,14 @@ class TextureComputer {
 
 	}
 
+	dispose() {
+
+		this._rt1.dispose();
+		this._rt2.dispose();
+		this.tData.dispose();
+
+	}
+
 	/*-------------------------------------------------------------------------/
 
 		Getters & Setters
@@ -238,7 +246,6 @@ TextureComputer.DEFAULT_FRAGMENT = /*glsl*/`
     }
 
 `;
-
 
 TextureComputer.createTexture = ( size ) => new DataTexture(
 	new Uint8Array( size * size * 4 ),

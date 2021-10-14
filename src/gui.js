@@ -40,9 +40,10 @@ gui.init = function () {
 	wind.open();
 
 	const anim = gui.addFolder( 'Animation' );
-	add( anim, control, 'delay' );
+	add( anim, control, 'reversed' );
 	add( anim, control, 'duration' );
 	add( anim, control, 'loopDuration' ).listen();
+	add( anim, control, 'delay' );
 	anim.open();
 
 	const set = gui.addFolder( 'Settings' );
