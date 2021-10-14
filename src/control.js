@@ -29,6 +29,8 @@ const geometries = {
 
 function generate() {
 
+
+
 	const geometry = geometries[ settings.geometry ]().toNonIndexed();
 
 	const material = new MeshStandardMaterial( {
@@ -39,8 +41,10 @@ function generate() {
 		//opacity: 0.5,
 	} );
 
-	if ( control.mesh ) stage.remove( control.mesh );
 	const mesh = new Disintegration( geometry, material, settings );
+
+	if ( control.mesh ) stage.remove( control.mesh );
+	delete control.mesh;
 	control.mesh = mesh;
 	stage.add( mesh );
 	if ( settings.debug ) console.log( { vertices: mesh.totalVertices } );
@@ -69,7 +73,7 @@ function random() {
 	const randomize = ( min, max, step ) =>
 		Math.round( vesuna.random( min, max ) / step ) * step;
 
-	vesuna.autoseed();
+	vesuna.autoseed(); //"emeralddawn"
 	if ( settings.debug ) console.log( { seed: vesuna.seed } );
 
 	// Done before reset to avoid repeating the same geometry

@@ -32,6 +32,7 @@ const divisions = 100;
 const grid = new GridHelper( size, divisions, 0x5a5a5f, 0x28282d );
 grid.position.y = - 2;
 scene.add( grid );
+
 grid.visible = settings.grid;
 
 // Functions

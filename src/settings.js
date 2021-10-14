@@ -52,6 +52,7 @@ const ranges = {
 
 const random = JSON.parse( JSON.stringify( ranges ) );
 [ 'x', 'y', 'z', 'loopDuration' ].forEach( key => delete random[ key ] );
+random.density.min = 2;
 random.density.max = 6;
 
 function reset() {
