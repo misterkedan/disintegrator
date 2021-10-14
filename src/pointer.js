@@ -7,9 +7,11 @@ let pointer;
 
 function init() {
 
-	const { camera } = stage;
-	const { canvas } = render;
-	const orbit = new OrbitControls( camera, canvas );
+	const orbit = new OrbitControls( stage.camera, render.canvas );
+	orbit.screenSpacePanning = false;
+	orbit.minDistance = 4;
+	orbit.maxDistance = 20;
+	orbit.maxPolarAngle = Math.PI / 2;
 	pointer.orbit = orbit;
 
 	document.getElementById( 'random' ).addEventListener(

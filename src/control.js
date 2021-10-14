@@ -56,7 +56,7 @@ const geometries = {
 	plane: () => new PlaneBufferGeometry( 1.8, 1.8, 160, 160 ),
 	sphere: () => new SphereBufferGeometry( 1, 128, 128 ),
 	torus: () => new TorusBufferGeometry( 0.8, 0.35, 128, 128 ),
-	torusKnot: () => new TorusKnotBufferGeometry( 0.7, 0.25, 256, 64 ),
+	torusKnot: () => new TorusKnotBufferGeometry( 0.7, 0.28, 256, 64 ),
 };
 
 function generate() {

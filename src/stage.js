@@ -1,11 +1,21 @@
-import { Color, Fog, GridHelper, HemisphereLight, PerspectiveCamera, Scene } from 'three';
+import {
+	Color,
+	Fog,
+	GridHelper,
+	HemisphereLight,
+	Mesh,
+	MeshBasicMaterial,
+	PerspectiveCamera,
+	PlaneGeometry,
+	Scene
+} from 'three';
 import { settings } from './settings';
 
 // Scene
 
 const scene = new Scene();
-scene.background = new Color( 0x1a1a1f );
-scene.fog = new Fog( scene.background, 1, 100 );
+scene.background = new Color( 0x222228 );
+scene.fog = new Fog( scene.background, 1, 60 );
 
 // Lights
 
@@ -19,7 +29,7 @@ const lights = { hemisphere };
 const fov = 45;
 const aspect = window.innerWidth / window.innerHeight;
 const near = 0.1;
-const far = 100;
+const far = 1000;
 
 const camera = new PerspectiveCamera( fov, aspect, near, far );
 camera.lookAt( 0, 0, 0 );
@@ -27,9 +37,28 @@ adaptCameraToRatio();
 
 // Grid
 
-const size = 210;
-const divisions = 100;
-const grid = new GridHelper( size, divisions, 0x5a5a5f, 0x28282d );
+const grid = ( function () {
+
+	const size = 100;
+	const divisions = 40;
+	const color = 0x303036;
+
+	if ( window.devicePixelRatio === 1 )
+		return new GridHelper( size, divisions, color, color );
+
+	const fakeGrid = new Mesh(
+		new PlaneGeometry( size, size, divisions, divisions ),
+		new MeshBasicMaterial( {
+			color,
+			wireframe: true,
+			transparent: true,
+			opacity: 0.25
+		} )
+	);
+	fakeGrid.rotation.x = - Math.PI / 2;
+	return fakeGrid;
+
+} )();
 grid.position.y = - 2;
 scene.add( grid );
 
