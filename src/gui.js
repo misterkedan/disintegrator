@@ -55,14 +55,15 @@ gui.init = function () {
 	add( set, core, 'random' );
 	set.open();
 
-	if ( settings.debug ) {
+	//if ( settings.debug ) {
 
-		const { innerWidth, devicePixelRatio } = window;
-		const ratio = devicePixelRatio || 1;
-		const smallWidth = ( Math.ceil( innerWidth / ratio ) < 1024 );
-		if ( smallWidth ) gui.close();
+	//	const { innerWidth, devicePixelRatio } = window;
+	//	const ratio = devicePixelRatio || 1;
+	//	const smallWidth = ( Math.ceil( innerWidth / ratio ) < 1024 );
+	//	if ( smallWidth ) gui.close();
 
-	} else gui.close();
+	//} else gui.close();
+	gui.close();
 
 };
 
