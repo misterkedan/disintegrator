@@ -9,7 +9,6 @@ import {
 	PlaneGeometry,
 	Scene
 } from 'three';
-import { settings } from './settings';
 
 // Scene
 

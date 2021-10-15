@@ -292,6 +292,8 @@ float elasticInOut( float t ) {
 }
 `;
 
+// Export
+
 export {
 	linear,
 	quadIn, quadOut, quadInOut,
