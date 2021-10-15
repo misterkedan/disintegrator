@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { Easing } from './animation/Easing';
+import { Easing } from './animation/easing/Easing';
 
 let settings;
 

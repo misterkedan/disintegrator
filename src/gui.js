@@ -1,7 +1,7 @@
 import * as dat from 'dat.gui';
 
-import { Easing } from './animation/Easing';
-import { control } from './control';
+import { Easing } from './animation/easing/Easing';
+import { core } from './core';
 import { settings } from './settings';
 
 const gui = new dat.GUI();
@@ -22,37 +22,37 @@ gui.init = function () {
 	}
 
 	const geometry = gui.addFolder( 'Geometry' );
-	add( geometry, control, 'geometry', Object.keys( control.geometries ) );
-	add( geometry, control, 'density' ).onFinishChange( control.generate );
+	add( geometry, core, 'geometry', Object.keys( core.geometries ) );
+	add( geometry, core, 'density' ).onFinishChange( core.generate );
 	geometry.open();
 
 	const spread = gui.addFolder( 'Spread' );
-	add( spread, control, 'spread' );
-	add( spread, control, 'turbulence' );
-	add( spread, control, 'stagger' );
-	add( spread, control, 'dynamics' );
+	add( spread, core, 'spread' );
+	add( spread, core, 'turbulence' );
+	add( spread, core, 'stagger' );
+	add( spread, core, 'dynamics' );
 	spread.open();
 
 	const wind = gui.addFolder( 'Wind' );
-	add( wind, control.wind, 'x' );
-	add( wind, control.wind, 'y' );
-	add( wind, control.wind, 'z' );
-	add( wind, control, 'zeroWind' );
+	add( wind, core.wind, 'x' );
+	add( wind, core.wind, 'y' );
+	add( wind, core.wind, 'z' );
+	add( wind, core, 'zeroWind' );
 	wind.open();
 
 	const anim = gui.addFolder( 'Animation' );
-	add( anim, control, 'easingFunction', Easing.functions );
-	add( anim, control, 'easingCategory', Easing.categories );
-	add( anim, control, 'reversed' );
-	add( anim, control, 'duration' );
-	add( anim, control, 'loopDuration' ).listen();
-	add( anim, control, 'delay' );
+	add( anim, core, 'easingFunction', Easing.functions );
+	add( anim, core, 'easingCategory', Easing.categories );
+	add( anim, core, 'reversed' );
+	add( anim, core, 'duration' );
+	add( anim, core, 'loopDuration' ).listen();
+	add( anim, core, 'delay' );
 	anim.open();
 
 	const set = gui.addFolder( 'Settings' );
-	add( set, control, 'grid' );
-	add( set, control, 'reset' );
-	add( set, control, 'random' );
+	add( set, core, 'grid' );
+	add( set, core, 'reset' );
+	add( set, core, 'random' );
 	set.open();
 
 	if ( settings.debug ) {

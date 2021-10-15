@@ -1,10 +1,10 @@
 import { ACESFilmicToneMapping, Vector2, WebGLRenderer } from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
-import { TextureComputer } from './animation/TextureComputer';
+import { TextureComputer } from './animation/gpgpu/TextureComputer';
 
-import { AdjustmentsPass } from './postprocessing/AdjustmentsPass';
-import { FXAAPass } from './postprocessing/FXAAPass';
+import { AdjustmentsPass } from './composer/AdjustmentsPass';
+import { FXAAPass } from './composer/FXAAPass';
 import { stage } from './stage';
 
 let render;

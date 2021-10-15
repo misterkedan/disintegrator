@@ -1,3 +1,38 @@
+import { FloatPack } from './FloatPack';
+import { TextureComputer } from './TextureComputer';
+
+class SimplexComputer extends TextureComputer {
+
+	constructor( length, {
+		min = 0,
+		max = 1,
+		scale = 1,
+		seed = Math.random(),
+	} = {} ) {
+
+		super( length, SimplexComputer.shader, {
+			uMin:   { value: min   },
+			uMax:   { value: max   },
+			uScale: { value: scale },
+			uSeed:  { value: seed  },
+		} );
+
+	}
+
+}
+
+SimplexComputer.formatUniforms = ( { min, max, scale, seed } ) => {
+
+	return {
+		uMin:   { value: min   },
+		uMax:   { value: max   },
+		uScale: { value: scale },
+		uSeed:  { value: seed  },
+	};
+
+};
+
+SimplexComputer.simplex3D = /*glsl*/`
 //	Simplex 3D Noise 
 //	by Ian McEwan, Ashima Arts
 //
@@ -83,3 +118,35 @@ float simplex3D( float vx, float vy, float vz ) {
 	);
 
 }
+`;
+
+SimplexComputer.shader = /*glsl*/`
+
+	uniform float uMin;
+	uniform float uMax;
+	uniform float uScale;
+	uniform float uSeed;
+	uniform sampler2D tData;
+
+    ${ FloatPack.glsl }
+	${ SimplexComputer.simplex3D }
+
+    void main() {
+        
+        vec2 uv = gl_FragCoord.xy / resolution.xy;
+
+		float noise = 0.5 + simplex3D( 
+			uv.x * uScale, 
+			uv.y * uScale, 
+			uSeed * uScale
+		) / 2.0;
+
+		float data = noise * ( uMax - uMin ) + uMin;
+
+        gl_FragColor = pack( data );
+
+    }
+
+`;
+
+export { SimplexComputer };

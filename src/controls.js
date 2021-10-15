@@ -1,9 +1,10 @@
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { control } from './control';
+
+import { core } from './core';
 import { render } from './render';
 import { stage } from './stage';
 
-let pointer;
+let controls;
 
 function init() {
 
@@ -12,14 +13,14 @@ function init() {
 	orbit.minDistance = 4;
 	orbit.maxDistance = 20;
 	orbit.maxPolarAngle = Math.PI / 2;
-	pointer.orbit = orbit;
+	controls.orbit = orbit;
 
 	document.getElementById( 'random' ).addEventListener(
-		'pointerup', control.random
+		'pointerup', core.random
 	);
 
 }
 
-pointer = { init };
+controls = { init };
 
-export { pointer };
+export { controls };

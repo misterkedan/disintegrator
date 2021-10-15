@@ -3,8 +3,8 @@ import { TessellateModifier } from 'three/examples/jsm/modifiers/TessellateModif
 import { mergeBufferGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils';
 import vesuna from 'vesuna';
 
-import { FloatPack } from '../animation/FloatPack';
-import { SimplexComputer } from '../animation/SimplexComputer';
+import { FloatPack } from '../animation/gpgpu/FloatPack';
+import { SimplexComputer } from '../animation/gpgpu/SimplexComputer';
 
 class Disintegration extends Mesh {
 

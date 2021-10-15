@@ -10,12 +10,12 @@ import {
 } from 'three';
 import vesuna from 'vesuna';
 
-import { Disintegration } from './scene/Disintegration';
+import { Easing } from './animation/easing/Easing';
+import { Disintegration } from './objects/Disintegration';
 
 import { gui } from './gui';
 import { settings } from './settings';
 import { stage } from './stage';
-import { Easing } from './animation/Easing';
 
 /*-----------------------------------------------------------------------------/
 
@@ -25,21 +25,21 @@ import { Easing } from './animation/Easing';
 
 function autoLoopDuration() {
 
-	let { loopDuration, duration, stagger, delay } = control;
+	let { loopDuration, duration, stagger, delay } = core;
 
 	if ( loopDuration === 0 ) return;
-	control.loopDuration = duration + stagger + delay * 2;
+	core.loopDuration = duration + stagger + delay * 2;
 
 }
 
 function cleanup() {
 
-	const { mesh } = control;
+	const { mesh } = core;
 	if ( ! mesh ) return;
 
 	mesh.dispose();
 	stage.remove( mesh );
-	delete control.mesh;
+	delete core.mesh;
 
 }
 
@@ -49,7 +49,7 @@ function cleanup() {
 
 /-----------------------------------------------------------------------------*/
 
-let control;
+let core;
 
 const geometries = {
 	box: () => new BoxBufferGeometry( 1.6, 1.6, 1.6, 64, 64, 64 ),
@@ -71,13 +71,13 @@ function generate() {
 	} );
 
 	const mesh = new Disintegration( geometry, material, settings );
-	control.mesh = mesh;
+	core.mesh = mesh;
 	stage.add( mesh );
 	if ( settings.debug ) console.log( { vertices: mesh.totalVertices } );
 
 	autoLoopDuration();
 	gui.updateDisplay();
-	if ( control.ticker ) control.ticker.reset();
+	if ( core.ticker ) core.ticker.reset();
 
 }
 
@@ -90,7 +90,7 @@ function random() {
 	if ( settings.debug ) console.log( { seed: vesuna.seed } );
 
 	// Done before reset to avoid repeating the same geometry
-	const geometry = vesuna.item( Object.keys( control.geometries ).filter(
+	const geometry = vesuna.item( Object.keys( core.geometries ).filter(
 		key => key !== settings.geometry
 	) );
 
@@ -126,14 +126,14 @@ function random() {
 function reset() {
 
 	settings.reset();
-	control.grid = settings.grid;
+	core.grid = settings.grid;
 	generate();
 
 }
 
 function update( time ) {
 
-	const { mesh, ticker, loopDuration } = control;
+	const { mesh, ticker, loopDuration } = core;
 	if ( mesh ) mesh.update( time );
 	if ( loopDuration > 0 && time > loopDuration ) ticker.reset();
 
@@ -148,7 +148,7 @@ function zeroWind( updateDisplay = true ) {
 
 }
 
-control = {
+core = {
 	geometries,
 	generate, random, reset, update, zeroWind,
 	init: reset,
@@ -166,42 +166,42 @@ control = {
 	get spread() { return settings.spread },
 	set spread( value ) { 
 		settings.spread = value;
-		control.mesh.options.spread = value;
-		control.mesh.compute();
+		core.mesh.options.spread = value;
+		core.mesh.compute();
 	},
 
 	get turbulence() { return settings.turbulence },
 	set turbulence( value ) { 
 		settings.turbulence = value;
-		control.mesh.options.turbulence = value;
-		control.mesh.compute();
+		core.mesh.options.turbulence = value;
+		core.mesh.compute();
 	},
 
 	get delay() { return settings.delay },
 	set delay( value ) { 
 		settings.delay = value;
-		control.mesh.shader.uniforms.uDelay.value = value;
+		core.mesh.shader.uniforms.uDelay.value = value;
 		autoLoopDuration();
 	},
 		
 	get duration() { return settings.duration },
 	set duration( value ) { 
 		settings.duration = value;
-		control.mesh.shader.uniforms.uDuration.value = value;
+		core.mesh.shader.uniforms.uDuration.value = value;
 		autoLoopDuration();
 	},
 
 	get stagger() { return settings.stagger },
 	set stagger( value ) {
 		settings.stagger = value;
-		control.mesh.shader.uniforms.uStagger.value = value;
+		core.mesh.shader.uniforms.uStagger.value = value;
 		autoLoopDuration();
 	},
 
 	get dynamics() { return settings.dynamics },
 	set dynamics( value ) {
 		settings.dynamics = value;
-		control.mesh.shader.uniforms.uDynamics.value = value;
+		core.mesh.shader.uniforms.uDynamics.value = value;
 	},
 
 	get wind() { return settings.wind },
@@ -213,22 +213,22 @@ control = {
 	get reversed() { return settings.reversed },
 	set reversed( value ) {
 		settings.reversed = value;
-		control.mesh.options.reversed = value;
-		control.mesh.setChunks();
+		core.mesh.options.reversed = value;
+		core.mesh.setChunks();
 	},
 
 	get easingFunction() { return settings.easingFunction },
 	set easingFunction( value ) {
 		settings.easingFunction = value;
 		settings.easing.f = value;
-		control.mesh.setChunks();
+		core.mesh.setChunks();
 	},
 
 	get easingCategory() { return settings.easingCategory },
 	set easingCategory( value ) {
 		settings.easingCategory = value;
 		settings.easing.category = value;
-		control.mesh.setChunks();
+		core.mesh.setChunks();
 	},
 
 	get grid() { return settings.grid },
@@ -239,4 +239,4 @@ control = {
 	/*eslint-enable*/
 };
 
-export { control };
+export { core  };
