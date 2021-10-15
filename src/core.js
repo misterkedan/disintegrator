@@ -1,13 +1,10 @@
 import {
 	BoxBufferGeometry,
 	CircleBufferGeometry,
-	ConeBufferGeometry,
 	CylinderBufferGeometry,
 	DoubleSide,
-	IcosahedronBufferGeometry,
 	MathUtils,
 	MeshStandardMaterial,
-	OctahedronBufferGeometry,
 	PlaneBufferGeometry,
 	SphereBufferGeometry,
 	TetrahedronBufferGeometry,
@@ -71,39 +68,19 @@ let core;
 
 const geometries = {
 	box: () => new BoxBufferGeometry( 1.5, 1.5, 1.5, 64, 64, 64 ),
-	circle: () => new CircleBufferGeometry( 1, 720 ),
-	//cone: () => {
-
-	//	const geometry = new ConeBufferGeometry( 1, 1.7, 128, 128 );
-	//	geometry.translate( 0, 0.35, 0 );
-	//	return geometry;
-
-	//},
+	circle: () => new CircleBufferGeometry( 1.1, 720 ),
 	cylinder: () => new CylinderBufferGeometry( 0.9, 0.9, 1.5, 96, 96 ),
-	//icosahedron: () => {
+	tetra: () => {
 
-	//	let geometry = new IcosahedronBufferGeometry( 1.2 );
-	//	return preTesselate( geometry, 12 );
-
-	//},
-	//octahedron: () => {
-
-	//	let geometry = new OctahedronBufferGeometry( 1.4 );
-	//	geometry.rotateY( MathUtils.degToRad( 30 ) );
-	//	return preTesselate( geometry, 10 );
-
-	//},
-	tetrahedron: () => {
-
-		let geometry = new TetrahedronBufferGeometry( 1.4 );
+		let geometry = new TetrahedronBufferGeometry( 1.5 );
 		geometry.rotateX( MathUtils.degToRad( 15 ) );
 		return preTesselate( geometry, 14 );
 
 	},
-	plane: () => new PlaneBufferGeometry( 1.8, 1.8, 160, 160 ),
-	sphere: () => new SphereBufferGeometry( 1, 128, 128 ),
+	plane: () => new PlaneBufferGeometry( 2, 2, 160, 160 ),
+	sphere: () => new SphereBufferGeometry( 1.1, 128, 128 ),
 	torus: () => new TorusBufferGeometry( 0.8, 0.35, 128, 128 ),
-	torusKnot: () => new TorusKnotBufferGeometry( 0.7, 0.28, 256, 64 ),
+	torusKnot: () => new TorusKnotBufferGeometry( 0.68, 0.28, 256, 64 ),
 
 };
 
@@ -112,7 +89,7 @@ function generate() {
 	cleanup();
 
 	let geometry = geometries[ settings.geometry ]();
-	if ( settings.geometry !== 'tetrahedron' ) geometry = geometry.toNonIndexed();
+	if ( settings.geometry !== 'tetra' ) geometry = geometry.toNonIndexed();
 
 	const material = new MeshStandardMaterial( {
 		side: DoubleSide,
@@ -187,6 +164,7 @@ function reset() {
 	vesuna.seed = settings.initialSeed;
 	settings.reset();
 	core.grid = settings.grid;
+	hash.save( '' );
 	generate();
 
 }

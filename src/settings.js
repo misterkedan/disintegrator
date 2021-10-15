@@ -17,23 +17,23 @@ const defaults = {
 	maxIterations: 6,
 
 	geometry: 'torus',
-	density: 4, // 6
+	density: 4,
 
-	spread: 2, // 3
+	spread: 2,
 	turbulence: 12,
 	stagger: 300,
-	dynamics: 0.4, //0.7
+	dynamics: 0.5,
 
 	wind,
 
 	easing: new Easing(),
-	easingFunction: 'sine', // circ
+	easingFunction: 'circ',
 	easingCategory: 'In',
 
 	reversed: false,
-	duration: 1200,
-	loopDuration: 3500, // 3000
-	delay: 1000, // 750
+	duration: 1000,
+	loopDuration: 3000,
+	delay: 850,
 
 };
 
@@ -76,7 +76,7 @@ function reset() {
 
 	settings.wind.x = 0;
 	settings.wind.y = 0;
-	settings.wind.z = - 3.5;
+	settings.wind.z = - 4;
 
 }
 

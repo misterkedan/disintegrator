@@ -39,7 +39,6 @@ class Disintegration extends Mesh {
 
 		super( geometry, material );
 
-
 		this.options = {
 			reversed, easing,
 			spread, turbulence,
