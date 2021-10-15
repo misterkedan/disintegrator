@@ -7,7 +7,7 @@ html {
 body {
 	font-family: 'Source Code Pro', monospace;
     background: #222225;
-    color: #fff;
+    color: #ffffff;
 	-webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 	overflow: hidden;
@@ -41,11 +41,11 @@ body, canvas {
 	-webkit-tap-highlight-color: transparent;
 
 	opacity: 0.6;
-	color: #f0faff;
+	color: #ffffff;
 	
 	margin-bottom: 12vh;
 	padding: 2rem 2rem 2rem 3.5rem;
-	outline: 0.4rem solid #f0faff;
+	outline: 0.4rem solid #ffffff;
 	
 	font-family: 'Source Code Pro', monospace;
 	font-size: 2rem;
