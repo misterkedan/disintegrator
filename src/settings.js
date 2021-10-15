@@ -13,27 +13,27 @@ const defaults = {
 	debug: true,
 	grid: true,
 
-	geometry: 'sphere',
 	maxEdgeLength: 0.05,
 	maxIterations: 6,
-	density: 4,
 
-	spread: 2,
+	geometry: 'torus',
+	density: 4, // 6
+
+	spread: 2, // 3
 	turbulence: 12,
-
-	easing: new Easing(),
-	easingFunction: 'circ',
-	easingCategory: 'In',
-
-	reversed: false,
-	delay: 1000,
-	duration: 1200,
 	stagger: 300,
-	dynamics: 0.7,
+	dynamics: 0.4, //0.7
 
 	wind,
 
-	loopDuration: 3500,
+	easing: new Easing(),
+	easingFunction: 'sine', // circ
+	easingCategory: 'In',
+
+	reversed: false,
+	duration: 1200,
+	loopDuration: 3500, // 3000
+	delay: 1000, // 750
 
 };
 
@@ -61,6 +61,7 @@ const random = JSON.parse( JSON.stringify( ranges ) );
 	.forEach( key => delete random[ key ] );
 random.density.min = 2;
 random.density.max = 6;
+random.duration.min = 1000;
 
 function reset() {
 

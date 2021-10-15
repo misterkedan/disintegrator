@@ -2,13 +2,20 @@ import {
 	BoxBufferGeometry,
 	CircleBufferGeometry,
 	ConeBufferGeometry,
+	CylinderBufferGeometry,
 	DoubleSide,
+	IcosahedronBufferGeometry,
+	MathUtils,
 	MeshStandardMaterial,
+	OctahedronBufferGeometry,
 	PlaneBufferGeometry,
 	SphereBufferGeometry,
+	TetrahedronBufferGeometry,
 	TorusBufferGeometry,
 	TorusKnotBufferGeometry,
 } from 'three';
+import { TessellateModifier } from 'three/examples/jsm/modifiers/TessellateModifier';
+
 import vesuna from 'vesuna';
 
 import { Easing } from './animation/easing/Easing';
@@ -47,6 +54,13 @@ function cleanup() {
 
 }
 
+function preTesselate( geometry, iterations = 6 ) {
+
+	const tesselator = new TessellateModifier( 0.01, iterations );
+	return tesselator.modify( geometry );
+
+}
+
 /*-----------------------------------------------------------------------------/
 
 	Public
@@ -56,9 +70,36 @@ function cleanup() {
 let core;
 
 const geometries = {
-	box: () => new BoxBufferGeometry( 1.6, 1.6, 1.6, 64, 64, 64 ),
+	box: () => new BoxBufferGeometry( 1.5, 1.5, 1.5, 64, 64, 64 ),
 	circle: () => new CircleBufferGeometry( 1, 720 ),
-	cone: () => new ConeBufferGeometry( 1, 1.7, 128, 128 ),
+	//cone: () => {
+
+	//	const geometry = new ConeBufferGeometry( 1, 1.7, 128, 128 );
+	//	geometry.translate( 0, 0.35, 0 );
+	//	return geometry;
+
+	//},
+	cylinder: () => new CylinderBufferGeometry( 0.9, 0.9, 1.5, 96, 96 ),
+	//icosahedron: () => {
+
+	//	let geometry = new IcosahedronBufferGeometry( 1.2 );
+	//	return preTesselate( geometry, 12 );
+
+	//},
+	//octahedron: () => {
+
+	//	let geometry = new OctahedronBufferGeometry( 1.4 );
+	//	geometry.rotateY( MathUtils.degToRad( 30 ) );
+	//	return preTesselate( geometry, 10 );
+
+	//},
+	tetrahedron: () => {
+
+		let geometry = new TetrahedronBufferGeometry( 1.4 );
+		geometry.rotateX( MathUtils.degToRad( 15 ) );
+		return preTesselate( geometry, 14 );
+
+	},
 	plane: () => new PlaneBufferGeometry( 1.8, 1.8, 160, 160 ),
 	sphere: () => new SphereBufferGeometry( 1, 128, 128 ),
 	torus: () => new TorusBufferGeometry( 0.8, 0.35, 128, 128 ),
@@ -70,7 +111,8 @@ function generate() {
 
 	cleanup();
 
-	const geometry = geometries[ settings.geometry ]().toNonIndexed();
+	let geometry = geometries[ settings.geometry ]();
+	if ( settings.geometry !== 'tetrahedron' ) geometry = geometry.toNonIndexed();
 
 	const material = new MeshStandardMaterial( {
 		side: DoubleSide,
@@ -132,7 +174,7 @@ function random( seed ) {
 	settings.easingFunction = vesuna.item(
 		Easing.functions.filter( item => ! unwantedFunctions.includes( item ) )
 	);
-	settings.easingCategory = vesuna.item( Easing.categories );
+	settings.easingCategory = vesuna.item( [ 'In', 'InOut' ] );
 	settings.easing.f = settings.easingFunction;
 	settings.easing.category = settings.easingCategory;
 
