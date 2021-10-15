@@ -1,11 +1,9 @@
 import { Vector3 } from 'three';
+import { Easing } from './animation/Easing';
 
 let settings;
 
-const windX = 0;
-const windY = 0;
-const windZ = - 3.5;
-const wind = new Vector3( windX, windY, windZ );
+const wind = new Vector3( 0, 0, 0 );
 
 const defaults = {
 
@@ -20,13 +18,17 @@ const defaults = {
 	spread: 2,
 	turbulence: 12,
 
+	easing: new Easing(),
+	easingFunction: 'circ',
+	easingCategory: 'In',
+
 	reversed: false,
 	delay: 1000,
 	duration: 1200,
 	stagger: 300,
 	dynamics: 0.7,
 
-	wind, windX, windY, windZ,
+	wind,
 
 	loopDuration: 3500,
 
@@ -64,9 +66,15 @@ function reset() {
 
 	} );
 
+	const { easingFunction, easingCategory } = settings;
+	settings.easing = new Easing( easingFunction, easingCategory );
+
+	settings.wind.x = 0;
+	settings.wind.y = 0;
+	settings.wind.z = - 3.5;
+
 }
 
 settings = { reset, random, ranges };
-reset();
 
 export { settings };

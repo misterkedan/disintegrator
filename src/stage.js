@@ -62,8 +62,6 @@ const grid = ( function () {
 grid.position.y = - 2;
 scene.add( grid );
 
-grid.visible = settings.grid;
-
 // Functions
 
 function add( child ) {

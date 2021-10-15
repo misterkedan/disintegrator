@@ -13,6 +13,7 @@ class Disintegration extends Mesh {
 
 			density,
 			reversed,
+			easing,
 
 			// Tesselation
 			maxEdgeLength,
@@ -40,7 +41,7 @@ class Disintegration extends Mesh {
 
 
 		this.options = {
-			reversed,
+			reversed, easing,
 			spread, turbulence,
 			delay, duration, stagger, dynamics, wind
 		};
@@ -143,6 +144,9 @@ class Disintegration extends Mesh {
 
 	setChunks() {
 
+		const { options } = this;
+		const easing = options.easing;
+
 		const declarations = /*glsl*/`
 
 			uniform float uTime;
@@ -159,11 +163,11 @@ class Disintegration extends Mesh {
 			attribute vec2 aDataCoord;
 			attribute vec3 aCentroid;
 
-			${FloatPack.glsl}
-
+			${ FloatPack.glsl }
+			${ easing.glsl }
 		`;
 
-		const reverseChunk = ( this.options.reversed )
+		const reverseChunk = ( options.reversed )
 			? 'progress = 1.0 - progress;'
 			: '';
 
@@ -182,8 +186,8 @@ class Disintegration extends Mesh {
 
 			float time = clamp( uTime - delay, 0.0, duration );
 			float progress =  clamp( time / duration, 0.0, 1.0 );
-
 			${ reverseChunk }
+			progress = ${easing.name}( progress );
 		
 			float scale = clamp( 1.0 - progress, 0.0, 1.0 );
 			transformed -= aCentroid;

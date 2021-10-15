@@ -12,7 +12,7 @@ function init() {
 
 	render.init();
 	pointer.init();
-	control.generate();
+	control.init();
 
 	gui.init();
 

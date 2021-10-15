@@ -1,5 +1,6 @@
 import * as dat from 'dat.gui';
 
+import { Easing } from './animation/Easing';
 import { control } from './control';
 import { settings } from './settings';
 
@@ -40,6 +41,8 @@ gui.init = function () {
 	wind.open();
 
 	const anim = gui.addFolder( 'Animation' );
+	add( anim, control, 'easingFunction', Easing.functions );
+	add( anim, control, 'easingCategory', Easing.categories );
 	add( anim, control, 'reversed' );
 	add( anim, control, 'duration' );
 	add( anim, control, 'loopDuration' ).listen();

@@ -15,6 +15,7 @@ import { Disintegration } from './scene/Disintegration';
 import { gui } from './gui';
 import { settings } from './settings';
 import { stage } from './stage';
+import { Easing } from './animation/Easing';
 
 /*-----------------------------------------------------------------------------/
 
@@ -85,7 +86,7 @@ function random() {
 	const randomize = ( min, max, step ) =>
 		Math.round( vesuna.random( min, max ) / step ) * step;
 
-	vesuna.autoseed(); //"emeralddawn"
+	vesuna.autoseed(); //"emeralddawn" "velvetflower"
 	if ( settings.debug ) console.log( { seed: vesuna.seed } );
 
 	// Done before reset to avoid repeating the same geometry
@@ -110,6 +111,14 @@ function random() {
 
 	}
 
+	const unwantedFunctions = [ 'back', 'bounce', 'elastic' ];
+	settings.easingFunction = vesuna.item(
+		Easing.functions.filter( item => ! unwantedFunctions.includes( item ) )
+	);
+	settings.easingCategory = vesuna.item( Easing.categories );
+	settings.easing.f = settings.easingFunction;
+	settings.easing.category = settings.easingCategory;
+
 	generate();
 
 }
@@ -117,13 +126,7 @@ function random() {
 function reset() {
 
 	settings.reset();
-
-	settings.wind.x = settings.windX;
-	settings.wind.y = settings.windY;
-	settings.wind.z = settings.windZ;
-
 	control.grid = settings.grid;
-
 	generate();
 
 }
@@ -148,6 +151,7 @@ function zeroWind( updateDisplay = true ) {
 control = {
 	geometries,
 	generate, random, reset, update, zeroWind,
+	init: reset,
 
 	/*eslint-disable*/
 	get geometry() { return settings.geometry; },
@@ -211,7 +215,20 @@ control = {
 		settings.reversed = value;
 		control.mesh.options.reversed = value;
 		control.mesh.setChunks();
-		
+	},
+
+	get easingFunction() { return settings.easingFunction },
+	set easingFunction( value ) {
+		settings.easingFunction = value;
+		settings.easing.f = value;
+		control.mesh.setChunks();
+	},
+
+	get easingCategory() { return settings.easingCategory },
+	set easingCategory( value ) {
+		settings.easingCategory = value;
+		settings.easing.category = value;
+		control.mesh.setChunks();
 	},
 
 	get grid() { return settings.grid },
