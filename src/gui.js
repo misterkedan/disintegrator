@@ -26,12 +26,12 @@ gui.init = function () {
 	add( geometry, core, 'density' ).onFinishChange( core.generate );
 	geometry.open();
 
-	const spread = gui.addFolder( 'Spread' );
-	add( spread, core, 'spread' );
-	add( spread, core, 'turbulence' );
-	add( spread, core, 'stagger' );
-	add( spread, core, 'dynamics' );
-	spread.open();
+	const noise = gui.addFolder( 'Noise' );
+	add( noise, core, 'spread' );
+	add( noise, core, 'turbulence' );
+	add( noise, core, 'stagger' );
+	add( noise, core, 'dynamics' );
+	noise.open();
 
 	const wind = gui.addFolder( 'Wind' );
 	add( wind, core.wind, 'x' );
