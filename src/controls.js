@@ -16,7 +16,13 @@ function init() {
 	controls.orbit = orbit;
 
 	document.getElementById( 'random' ).addEventListener(
-		'pointerup', core.random
+
+		'click', () => {
+
+			core.random();
+
+		}
+
 	);
 
 }

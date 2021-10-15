@@ -5,12 +5,15 @@ let settings;
 
 const wind = new Vector3( 0, 0, 0 );
 
+const title = 'Disintegrator';
+const defaultSeed = 'keda';
+
 const defaults = {
 
 	debug: true,
 	grid: true,
 
-	geometry: 'torus',
+	geometry: 'sphere',
 	maxEdgeLength: 0.05,
 	maxIterations: 6,
 	density: 4,
@@ -54,7 +57,8 @@ const ranges = {
 };
 
 const random = JSON.parse( JSON.stringify( ranges ) );
-[ 'x', 'y', 'z', 'loopDuration' ].forEach( key => delete random[ key ] );
+[ 'x', 'y', 'z', 'loopDuration', 'defaultSeed' ]
+	.forEach( key => delete random[ key ] );
 random.density.min = 2;
 random.density.max = 6;
 
@@ -75,6 +79,9 @@ function reset() {
 
 }
 
-settings = { reset, random, ranges };
+settings = {
+	title, defaultSeed, ranges,
+	reset, random
+};
 
 export { settings };

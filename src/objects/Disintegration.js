@@ -125,10 +125,9 @@ class Disintegration extends Mesh {
 			uScale: { value: turbulence },
 		};
 
-		Object.entries( gpgpu ).forEach( ( [ key, computer ] ) => {
+		Object.values( gpgpu ).forEach( computer => {
 
 			computer.uniforms = JSON.parse( JSON.stringify( spreadUniforms ) );
-			vesuna.seed = key;
 			computer.uniforms.uSeed = { value: vesuna.random() };
 			computer.compute();
 

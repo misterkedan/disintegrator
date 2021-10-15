@@ -1,12 +1,12 @@
+import { Ticker } from './animation/Ticker';
+
 import { stage } from './stage';
 import { render } from './render';
 import { core } from './core';
 import { gui } from './gui';
 import { controls } from './controls';
 
-import { Ticker } from './animation/Ticker';
-
-let ticker;
+init();
 
 function init() {
 
@@ -18,10 +18,9 @@ function init() {
 	window.addEventListener( 'resize', resize );
 	resize();
 
-	ticker = new Ticker( animate, 0 );
-	ticker.start();
-
+	const ticker = new Ticker( animate, 0 );
 	core.ticker = ticker;
+	ticker.start();
 
 }
 
@@ -47,5 +46,3 @@ function animate( time ) {
 	toUpdate.forEach( item => item.update( time ) );
 
 }
-
-init();

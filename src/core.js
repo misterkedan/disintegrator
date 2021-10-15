@@ -1,6 +1,7 @@
 import {
 	BoxBufferGeometry,
 	CircleBufferGeometry,
+	ConeBufferGeometry,
 	DoubleSide,
 	MeshStandardMaterial,
 	PlaneBufferGeometry,
@@ -16,6 +17,9 @@ import { Disintegration } from './objects/Disintegration';
 import { gui } from './gui';
 import { settings } from './settings';
 import { stage } from './stage';
+import { hash } from './hash';
+
+vesuna.seed = settings.defaultSeed;
 
 /*-----------------------------------------------------------------------------/
 
@@ -54,10 +58,12 @@ let core;
 const geometries = {
 	box: () => new BoxBufferGeometry( 1.6, 1.6, 1.6, 64, 64, 64 ),
 	circle: () => new CircleBufferGeometry( 1, 720 ),
+	cone: () => new ConeBufferGeometry( 1, 1.7, 128, 128 ),
 	plane: () => new PlaneBufferGeometry( 1.8, 1.8, 160, 160 ),
 	sphere: () => new SphereBufferGeometry( 1, 128, 128 ),
 	torus: () => new TorusBufferGeometry( 0.8, 0.35, 128, 128 ),
 	torusKnot: () => new TorusKnotBufferGeometry( 0.7, 0.28, 256, 64 ),
+
 };
 
 function generate() {
@@ -79,15 +85,26 @@ function generate() {
 	gui.updateDisplay();
 	if ( core.ticker ) core.ticker.reset();
 
+	const subtitle = ( ! vesuna.seed || vesuna.seed === settings.defaultSeed )
+		? ''
+		: ` #${ vesuna.seed }`;
+	document.title = settings.title + subtitle;
+
 }
 
-function random() {
+function random( seed ) {
 
-	const randomize = ( min, max, step ) =>
-		Math.round( vesuna.random( min, max ) / step ) * step;
+	if ( ! seed ) {
 
-	vesuna.autoseed(); //"emeralddawn" "velvetflower"
-	if ( settings.debug ) console.log( { seed: vesuna.seed } );
+		vesuna.autoseed();
+		//if ( settings.debug ) console.log( { seed: vesuna.seed } );
+		hash.save( vesuna.seed );
+
+	} else vesuna.seed = seed;
+
+	const randomize = ( min, max, step ) => Math.round(
+		vesuna.random( min, max ) / step
+	) * step;
 
 	// Done before reset to avoid repeating the same geometry
 	const geometry = vesuna.item( Object.keys( core.geometries ).filter(
@@ -125,6 +142,7 @@ function random() {
 
 function reset() {
 
+	vesuna.seed = settings.initialSeed;
 	settings.reset();
 	core.grid = settings.grid;
 	generate();
@@ -148,10 +166,21 @@ function zeroWind( updateDisplay = true ) {
 
 }
 
+function init() {
+
+	const { reset, random } = core;
+	const seed = hash.load();
+
+	if ( ! seed ) reset();
+	else if ( seed !== vesuna.seed ) random( seed );
+
+	window.addEventListener( 'hashchange', init );
+
+}
+
 core = {
 	geometries,
-	generate, random, reset, update, zeroWind,
-	init: reset,
+	init, generate, random, reset, update, zeroWind,
 
 	/*eslint-disable*/
 	get geometry() { return settings.geometry; },

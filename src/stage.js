@@ -18,7 +18,11 @@ scene.fog = new Fog( scene.background, 1, 60 );
 
 // Lights
 
-const hemisphere = new HemisphereLight( 0xffffee, 0x303135, 2 );
+const directional = new THREE.DirectionalLight( 0xffdddd, 0.5 );
+directional.position.set( 5, 5, 5 );
+scene.add( directional );
+
+const hemisphere = new HemisphereLight( 0xffffee, 0x303135, 1.5 );
 scene.add( hemisphere );
 
 const lights = { hemisphere };
