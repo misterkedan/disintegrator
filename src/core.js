@@ -101,7 +101,7 @@ function generate() {
 	if ( settings.debug ) console.log( { vertices: mesh.totalVertices } );
 
 	autoLoopDuration();
-	gui.updateDisplay();
+	gui.updateDisplay?.();
 	if ( core.ticker ) core.ticker.reset();
 
 	const subtitle = ( ! vesuna.seed || vesuna.seed === settings.defaultSeed )

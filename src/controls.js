@@ -5,6 +5,7 @@ import { render } from './render';
 import { stage } from './stage';
 
 let controls;
+let visibleUI = true;
 
 function init() {
 
@@ -24,6 +25,34 @@ function init() {
 		}
 
 	);
+
+
+	const elements = [
+		document.getElementById( 'overlay' ),
+		document.getElementById( 'footer' ),
+		document.querySelector( '.dg' ),
+	];
+
+	const toggle = () => {
+
+		visibleUI = ! visibleUI;
+		const visibility = ( visibleUI ) ? 'visible' : 'hidden';
+
+		elements.forEach( element => element.style.visibility = visibility );
+
+	};
+
+	window.addEventListener( 'keyup', ( event ) => {
+
+		const callbacks = {
+			' ': () => core.random(),
+			'h': () => toggle(),
+		};
+
+		const callback = callbacks[ event.key ];
+		if ( callback ) callback();
+
+	} );
 
 }
 

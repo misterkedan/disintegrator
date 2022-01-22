@@ -35,7 +35,7 @@ function resize() {
 	toResize.forEach( item => item.resize(
 		width,
 		height,
-		devicePixelRatio
+		Math.min( devicePixelRatio, 2 )
 	) );
 
 }

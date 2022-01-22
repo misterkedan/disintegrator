@@ -1,10 +1,10 @@
-import * as dat from 'dat.gui';
+import { GUI } from 'lil-gui';
 
 import { Easing } from './animation/easing/Easing';
 import { core } from './core';
 import { settings } from './settings';
 
-const gui = new dat.GUI();
+const gui = new GUI();
 
 gui.init = function () {
 
@@ -55,14 +55,10 @@ gui.init = function () {
 	add( set, core, 'random' );
 	set.open();
 
-	//if ( settings.debug ) {
+	gui.updateDisplay = () => gui.controllersRecursive().forEach(
+		controller => controller.updateDisplay()
+	);
 
-	//	const { innerWidth, devicePixelRatio } = window;
-	//	const ratio = devicePixelRatio || 1;
-	//	const smallWidth = ( Math.ceil( innerWidth / ratio ) < 1024 );
-	//	if ( smallWidth ) gui.close();
-
-	//} else gui.close();
 	gui.close();
 
 };

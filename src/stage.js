@@ -40,28 +40,10 @@ adaptCameraToRatio();
 
 // Grid
 
-const grid = ( function () {
-
-	const size = 100;
-	const divisions = 40;
-	const color = 0x303035;
-
-	if ( window.devicePixelRatio === 1 )
-		return new GridHelper( size, divisions, color, color );
-
-	const fakeGrid = new Mesh(
-		new PlaneGeometry( size, size, divisions, divisions ),
-		new MeshBasicMaterial( {
-			color,
-			wireframe: true,
-			transparent: true,
-			opacity: 0.25
-		} )
-	);
-	fakeGrid.rotation.x = - Math.PI / 2;
-	return fakeGrid;
-
-} )();
+const size = 100;
+const divisions = 40;
+const color = 0x303035;
+const grid = new GridHelper( size, divisions, color, color );
 grid.position.y = - 2;
 scene.add( grid );
 

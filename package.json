@@ -1,11 +1,11 @@
 {
   "name": "202110-disintegrator",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "description": "All your bases are now belong to us.",
   "author": "Pierre Keda",
   "license": "MIT",
   "dependencies": {
-    "dat.gui": "^0.7.7",
+    "lil-gui": "^0.16.0",
     "three": "^0.133.1",
     "vesuna": "^1.0.0"
   },
