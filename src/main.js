@@ -18,7 +18,7 @@ function init() {
 	window.addEventListener( 'resize', resize );
 	resize();
 
-	const ticker = new Ticker( animate, 0 );
+	const ticker = new Ticker( tick, 60 );
 	core.ticker = ticker;
 	ticker.start();
 
@@ -40,7 +40,7 @@ function resize() {
 
 }
 
-function animate( time ) {
+function tick( delta, time ) {
 
 	const toUpdate = [ render, core ];
 	toUpdate.forEach( item => item.update( time ) );

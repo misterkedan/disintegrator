@@ -3,10 +3,7 @@ import {
 	Fog,
 	GridHelper,
 	HemisphereLight,
-	Mesh,
-	MeshBasicMaterial,
 	PerspectiveCamera,
-	PlaneGeometry,
 	Scene
 } from 'three';
 

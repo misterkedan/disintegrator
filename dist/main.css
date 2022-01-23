@@ -44,7 +44,7 @@ body, canvas {
 	color: #ffffff;
 	
 	margin-bottom: 12vh;
-	padding: 2rem 2rem 2rem 3rem;
+	padding: 1.5rem 2.5rem 1.5rem 3rem;
 	outline: 0.4rem solid #ffffff;
 	
 	font-family: 'Source Code Pro', monospace;
@@ -78,6 +78,7 @@ body, canvas {
 
 #footer a,
 #footer a:visited {
+	pointer-events: initial;
 	color: rgba(0, 165, 255, 0.8);
 }
 

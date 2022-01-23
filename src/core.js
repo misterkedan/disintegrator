@@ -12,11 +12,10 @@ import {
 	TorusKnotBufferGeometry,
 } from 'three';
 import { TessellateModifier } from 'three/examples/jsm/modifiers/TessellateModifier';
-
 import vesuna from 'vesuna';
 
 import { Easing } from './animation/easing/Easing';
-import { Disintegration } from './objects/Disintegration';
+import { Disintegration } from './animation/Disintegration';
 
 import { gui } from './gui';
 import { settings } from './settings';
@@ -117,7 +116,7 @@ function random( seed ) {
 
 		vesuna.autoseed();
 		//if ( settings.debug ) console.log( { seed: vesuna.seed } );
-		hash.save( vesuna.seed );
+		if ( settings.autohash ) hash.save( vesuna.seed );
 
 	} else vesuna.seed = seed;
 
@@ -164,7 +163,7 @@ function reset() {
 	vesuna.seed = settings.initialSeed;
 	settings.reset();
 	core.grid = settings.grid;
-	hash.save( '' );
+	if ( settings.autohash ) hash.save( '' );
 	generate();
 
 }
@@ -194,7 +193,7 @@ function init() {
 	if ( ! seed ) reset();
 	else if ( seed !== vesuna.seed ) random( seed );
 
-	window.addEventListener( 'hashchange', init );
+	if ( settings.autohash ) window.addEventListener( 'hashchange', init );
 
 }
 

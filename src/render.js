@@ -3,8 +3,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { TextureComputer } from './animation/gpgpu/TextureComputer';
 
-import { AdjustmentsPass } from './composer/AdjustmentsPass';
-import { FXAAPass } from './composer/FXAAPass';
+import { FXAAPass } from './postprocessing/FXAAPass';
 import { stage } from './stage';
 
 let render;
@@ -30,7 +29,6 @@ function init() {
 	const post = {
 		render: new RenderPass( scene, camera ),
 		fxaa: new FXAAPass(),
-		adjustments: new AdjustmentsPass(),
 	};
 
 	Object.values( post ).forEach( pass => composer.addPass( pass )	);

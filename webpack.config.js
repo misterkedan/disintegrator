@@ -11,17 +11,19 @@ let config = {
 	module: {
 		rules: [
 			{
-				test: /\.js$/,
-				exclude: [ /node_modules/ ],
-				loader: 'babel-loader',
-				options: { presets: [ '@babel/preset-env' ] }
+				test: /\.m?js$/,
+				exclude: /node_modules\/(?!(textformer|vesuna))/,
+				use: {
+					loader: 'babel-loader',
+					options: {
+						presets: [ '@babel/preset-env' ],
+					},
+				},
 			}, {
 				test: /\.(glsl)$/,
-				exclude: /(node_modules)/,
-				use: [
-					'raw-loader'
-				]
-			}
+				exclude: /node_modules/,
+				loader: 'raw-loader',
+			},
 		]
 	},
 };
@@ -48,7 +50,8 @@ module.exports = ( env, argv ) => {
 		...config,
 		mode: 'production',
 		externals: {
-			'dat.gui': 'dat.gui',
+			'stats.js': 'window',
+			'lil-gui': 'window',
 			three: 'THREE'
 		},
 		optimization: {

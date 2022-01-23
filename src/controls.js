@@ -26,19 +26,13 @@ function init() {
 
 	);
 
-
-	const elements = [
-		document.getElementById( 'overlay' ),
-		document.getElementById( 'footer' ),
-		document.querySelector( '.dg' ),
-	];
-
 	const toggle = () => {
 
 		visibleUI = ! visibleUI;
 		const visibility = ( visibleUI ) ? 'visible' : 'hidden';
 
-		elements.forEach( element => element.style.visibility = visibility );
+		document.getElementById( 'overlay' ).style.visibility = visibility;
+		document.querySelector( '.lil-gui' ).style.visibility = visibility;
 
 	};
 

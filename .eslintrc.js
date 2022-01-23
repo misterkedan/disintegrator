@@ -8,7 +8,7 @@ module.exports = {
 		'mdcs'
 	],
 	'ignorePatterns': [
-		'lib/*', 'vendor/*', '*.min.js', '_/*'
+		'dist/*', 'lib/*', 'vendor/*', '*.min.js', '_/*'
 	],
 	'parserOptions': {
 		'ecmaVersion': 12,

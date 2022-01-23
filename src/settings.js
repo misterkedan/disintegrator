@@ -10,8 +10,9 @@ const defaultSeed = 'keda';
 
 const defaults = {
 
-	debug: true,
+	//debug: true,
 	grid: true,
+	autohash: false,
 
 	maxEdgeLength: 0.05,
 	maxIterations: 6,
