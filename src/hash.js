@@ -1,23 +1,15 @@
-let hash;
-
 function load() {
+  function removeHash(string) {
+    return string.replace('#', '');
+  }
 
-	function removeHash( string ) {
-
-		return string.replace( '#', '' );
-
-	}
-
-	return removeHash( window.location.hash );
-
+  return removeHash(window.location.hash);
 }
 
-function save( string ) {
-
-	window.location.hash = string;
-
+function save(string) {
+  window.location.hash = string;
 }
 
-hash = { load, save };
+const hash = { load, save };
 
 export { hash };

@@ -3,7 +3,7 @@
 #endif
 
 #ifndef bounceOut
-float bounceOut( float t ) {
+float bounceOut(float t) {
 	const float a = 4.0 / 11.0;
 	const float b = 8.0 / 11.0;
 	const float c = 9.0 / 10.0;
@@ -24,6 +24,6 @@ float bounceOut( float t ) {
 }
 #endif
 
-float bounceIn( float t ) {
-	return 1.0 - bounceOut( 1.0 - t );
+float bounceIn(float t) {
+	return 1.0 - bounceOut(1.0 - t);
 }

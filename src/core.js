@@ -1,15 +1,15 @@
 import {
-	BoxBufferGeometry,
-	CircleBufferGeometry,
-	CylinderBufferGeometry,
-	DoubleSide,
-	MathUtils,
-	MeshStandardMaterial,
-	PlaneBufferGeometry,
-	SphereBufferGeometry,
-	TetrahedronBufferGeometry,
-	TorusBufferGeometry,
-	TorusKnotBufferGeometry,
+  BoxBufferGeometry,
+  CircleBufferGeometry,
+  CylinderBufferGeometry,
+  DoubleSide,
+  MathUtils,
+  MeshStandardMaterial,
+  PlaneBufferGeometry,
+  SphereBufferGeometry,
+  TetrahedronBufferGeometry,
+  TorusBufferGeometry,
+  TorusKnotBufferGeometry,
 } from 'three';
 import { TessellateModifier } from 'three/examples/jsm/modifiers/TessellateModifier';
 import vesuna from 'vesuna';
@@ -25,266 +25,264 @@ import { hash } from './hash';
 vesuna.seed = settings.defaultSeed;
 
 /*-----------------------------------------------------------------------------/
-
 	Private
-
 /-----------------------------------------------------------------------------*/
 
 function autoLoopDuration() {
+  let { loopDuration, duration, stagger, delay } = core;
 
-	let { loopDuration, duration, stagger, delay } = core;
-
-	if ( loopDuration === 0 ) return;
-	core.loopDuration = duration + stagger + delay * 2;
-
+  if (loopDuration === 0) return;
+  core.loopDuration = duration + stagger + delay * 2;
 }
 
 function cleanup() {
+  const { mesh } = core;
+  if (!mesh) return;
 
-	const { mesh } = core;
-	if ( ! mesh ) return;
-
-	mesh.dispose();
-	stage.remove( mesh );
-	delete core.mesh;
-
+  mesh.dispose();
+  stage.remove(mesh);
+  delete core.mesh;
 }
 
-function preTesselate( geometry, iterations = 6 ) {
-
-	const tesselator = new TessellateModifier( 0.01, iterations );
-	return tesselator.modify( geometry );
-
+function preTesselate(geometry, iterations = 6) {
+  const tesselator = new TessellateModifier(0.01, iterations);
+  return tesselator.modify(geometry);
 }
 
 /*-----------------------------------------------------------------------------/
-
 	Public
-
 /-----------------------------------------------------------------------------*/
 
-let core;
-
 const geometries = {
-	box: () => new BoxBufferGeometry( 1.5, 1.5, 1.5, 64, 64, 64 ),
-	circle: () => new CircleBufferGeometry( 1.1, 720 ),
-	cylinder: () => new CylinderBufferGeometry( 0.9, 0.9, 1.5, 96, 96 ),
-	tetra: () => {
-
-		let geometry = new TetrahedronBufferGeometry( 1.5 );
-		geometry.rotateX( MathUtils.degToRad( 15 ) );
-		return preTesselate( geometry, 14 );
-
-	},
-	plane: () => new PlaneBufferGeometry( 2, 2, 160, 160 ),
-	sphere: () => new SphereBufferGeometry( 1.1, 128, 128 ),
-	torus: () => new TorusBufferGeometry( 0.8, 0.35, 128, 128 ),
-	torusKnot: () => new TorusKnotBufferGeometry( 0.68, 0.28, 256, 64 ),
-
+  box: () => new BoxBufferGeometry(1.5, 1.5, 1.5, 64, 64, 64),
+  circle: () => new CircleBufferGeometry(1.1, 720),
+  cylinder: () => new CylinderBufferGeometry(0.9, 0.9, 1.5, 96, 96),
+  tetra: () => {
+    let geometry = new TetrahedronBufferGeometry(1.5);
+    geometry.rotateX(MathUtils.degToRad(15));
+    return preTesselate(geometry, 14);
+  },
+  plane: () => new PlaneBufferGeometry(2, 2, 160, 160),
+  sphere: () => new SphereBufferGeometry(1.1, 128, 128),
+  torus: () => new TorusBufferGeometry(0.8, 0.35, 128, 128),
+  torusKnot: () => new TorusKnotBufferGeometry(0.68, 0.28, 256, 64),
 };
 
-function generate() {
+const core = {
+  geometries,
 
-	cleanup();
+  generate: () => {
+    cleanup();
 
-	let geometry = geometries[ settings.geometry ]();
-	if ( settings.geometry !== 'tetra' ) geometry = geometry.toNonIndexed();
+    let geometry = geometries[settings.geometry]();
+    if (settings.geometry !== 'tetra') geometry = geometry.toNonIndexed();
 
-	const material = new MeshStandardMaterial( {
-		side: DoubleSide,
-	} );
+    const material = new MeshStandardMaterial({
+      side: DoubleSide,
+    });
 
-	const mesh = new Disintegration( geometry, material, settings );
-	core.mesh = mesh;
-	stage.add( mesh );
-	if ( settings.debug ) console.log( { vertices: mesh.totalVertices } );
+    const mesh = new Disintegration(geometry, material, settings);
+    core.mesh = mesh;
+    stage.add(mesh);
+    if (settings.debug) console.log({ vertices: mesh.totalVertices });
 
-	autoLoopDuration();
-	gui.updateDisplay?.();
-	if ( core.ticker ) core.ticker.reset();
+    autoLoopDuration();
+    gui.updateDisplay?.();
+    if (core.ticker) core.ticker.reset();
 
-	const subtitle = ( ! vesuna.seed || vesuna.seed === settings.defaultSeed )
-		? ''
-		: ` #${ vesuna.seed }`;
-	document.title = settings.title + subtitle;
+    const subtitle =
+      !vesuna.seed || vesuna.seed === settings.defaultSeed
+        ? ''
+        : ` #${vesuna.seed}`;
+    document.title = settings.title + subtitle;
+  },
 
-}
+  random: (seed) => {
+    if (!seed) {
+      vesuna.autoseed();
+      if (settings.debug) console.log({ seed: vesuna.seed });
+      if (settings.autohash) hash.save(vesuna.seed);
+    } else vesuna.seed = seed;
 
-function random( seed ) {
+    const randomize = (min, max, step) =>
+      Math.round(vesuna.random(min, max) / step) * step;
 
-	if ( ! seed ) {
+    // Done before reset to avoid repeating the same geometry
+    const geometry = vesuna.item(
+      Object.keys(core.geometries).filter((key) => key !== settings.geometry)
+    );
 
-		vesuna.autoseed();
-		//if ( settings.debug ) console.log( { seed: vesuna.seed } );
-		if ( settings.autohash ) hash.save( vesuna.seed );
+    settings.reset();
+    settings.geometry = geometry;
+    Object.entries(settings.random).forEach(([key, value]) => {
+      const { min, max, step } = value;
+      settings[key] = randomize(min, max, step);
+    });
+    core.zeroWind(false);
+    if (vesuna.random() > 0.25) {
+      const coord = vesuna.item(['x', 'y', 'z']);
+      const { min, max, step } = settings.ranges[coord];
+      settings.wind[coord] = randomize(min, max, step);
+    }
 
-	} else vesuna.seed = seed;
+    const unwantedFunctions = ['back', 'bounce', 'elastic'];
+    settings.easingFunction = vesuna.item(
+      Easing.functions.filter((item) => !unwantedFunctions.includes(item))
+    );
+    settings.easingCategory = vesuna.item(['In', 'InOut']);
+    settings.easing.f = settings.easingFunction;
+    settings.easing.category = settings.easingCategory;
 
-	const randomize = ( min, max, step ) => Math.round(
-		vesuna.random( min, max ) / step
-	) * step;
+    core.generate();
+  },
 
-	// Done before reset to avoid repeating the same geometry
-	const geometry = vesuna.item( Object.keys( core.geometries ).filter(
-		key => key !== settings.geometry
-	) );
+  reset: () => {
+    vesuna.seed = settings.initialSeed;
+    settings.reset();
+    core.grid = settings.grid;
+    if (settings.autohash) hash.save('');
+    core.generate();
+  },
 
-	settings.reset();
-	settings.geometry = geometry;
-	Object.entries( settings.random ).forEach( ( [ key, value ] ) => {
+  update: (time) => {
+    const { mesh, ticker, loopDuration } = core;
+    if (mesh) mesh.update(time);
+    if (loopDuration > 0 && time > loopDuration) ticker.reset();
+  },
 
-		const { min, max, step } = value;
-		settings[ key ] = randomize( min, max, step );
+  zeroWind: (updateDisplay = true) => {
+    settings.wind.x = 0;
+    settings.wind.y = 0;
+    settings.wind.z = 0;
+    if (updateDisplay) gui.updateDisplay();
+  },
 
-	} );
-	zeroWind( false );
-	if ( vesuna.random() > 0.25 ) {
+  init: () => {
+    const seed = hash.load();
 
-		const coord = vesuna.item( [ 'x', 'y', 'z' ] );
-		const { min, max, step } = settings.ranges[ coord ];
-		settings.wind[ coord ] = randomize( min, max, step );
+    if (!seed) core.reset();
+    else if (seed !== vesuna.seed) core.random(seed);
 
-	}
+    if (settings.autohash)
+      window.addEventListener('hashchange', () => core.init());
+  },
 
-	const unwantedFunctions = [ 'back', 'bounce', 'elastic' ];
-	settings.easingFunction = vesuna.item(
-		Easing.functions.filter( item => ! unwantedFunctions.includes( item ) )
-	);
-	settings.easingCategory = vesuna.item( [ 'In', 'InOut' ] );
-	settings.easing.f = settings.easingFunction;
-	settings.easing.category = settings.easingCategory;
+  get geometry() {
+    return settings.geometry;
+  },
+  set geometry(value) {
+    settings.geometry = value;
+    core.generate();
+  },
 
-	generate();
+  get density() {
+    return settings.density;
+  },
+  set density(value) {
+    settings.density = value;
+  },
 
-}
+  get spread() {
+    return settings.spread;
+  },
+  set spread(value) {
+    settings.spread = value;
+    core.mesh.options.spread = value;
+    core.mesh.compute();
+  },
 
-function reset() {
+  get turbulence() {
+    return settings.turbulence;
+  },
+  set turbulence(value) {
+    settings.turbulence = value;
+    core.mesh.options.turbulence = value;
+    core.mesh.compute();
+  },
 
-	vesuna.seed = settings.initialSeed;
-	settings.reset();
-	core.grid = settings.grid;
-	if ( settings.autohash ) hash.save( '' );
-	generate();
+  get delay() {
+    return settings.delay;
+  },
+  set delay(value) {
+    settings.delay = value;
+    core.mesh.shader.uniforms.uDelay.value = value;
+    autoLoopDuration();
+  },
 
-}
+  get duration() {
+    return settings.duration;
+  },
+  set duration(value) {
+    settings.duration = value;
+    core.mesh.shader.uniforms.uDuration.value = value;
+    autoLoopDuration();
+  },
 
-function update( time ) {
+  get stagger() {
+    return settings.stagger;
+  },
+  set stagger(value) {
+    settings.stagger = value;
+    core.mesh.shader.uniforms.uStagger.value = value;
+    autoLoopDuration();
+  },
 
-	const { mesh, ticker, loopDuration } = core;
-	if ( mesh ) mesh.update( time );
-	if ( loopDuration > 0 && time > loopDuration ) ticker.reset();
+  get dynamics() {
+    return settings.dynamics;
+  },
+  set dynamics(value) {
+    settings.dynamics = value;
+    core.mesh.shader.uniforms.uDynamics.value = value;
+  },
 
-}
+  get wind() {
+    return settings.wind;
+  },
+  set wind(value) {
+    settings.wind = value;
+  },
 
-function zeroWind( updateDisplay = true ) {
+  get loopDuration() {
+    return settings.loopDuration;
+  },
+  set loopDuration(value) {
+    settings.loopDuration = value;
+  },
 
-	settings.wind.x = 0;
-	settings.wind.y = 0;
-	settings.wind.z = 0;
-	if ( updateDisplay ) gui.updateDisplay();
+  get reversed() {
+    return settings.reversed;
+  },
+  set reversed(value) {
+    settings.reversed = value;
+    core.mesh.options.reversed = value;
+    core.mesh.setChunks();
+  },
 
-}
+  get easingFunction() {
+    return settings.easingFunction;
+  },
+  set easingFunction(value) {
+    settings.easingFunction = value;
+    settings.easing.f = value;
+    core.mesh.setChunks();
+  },
 
-function init() {
+  get easingCategory() {
+    return settings.easingCategory;
+  },
+  set easingCategory(value) {
+    settings.easingCategory = value;
+    settings.easing.category = value;
+    core.mesh.setChunks();
+  },
 
-	const { reset, random } = core;
-	const seed = hash.load();
-
-	if ( ! seed ) reset();
-	else if ( seed !== vesuna.seed ) random( seed );
-
-	if ( settings.autohash ) window.addEventListener( 'hashchange', init );
-
-}
-
-core = {
-	geometries,
-	init, generate, random, reset, update, zeroWind,
-
-	/*eslint-disable*/
-	get geometry() { return settings.geometry; },
-	set geometry( value ) {
-		settings.geometry = value;
-		generate();
-	},
-
-	get density() { return settings.density; },
-	set density( value ) { settings.density = value; },
-
-	get spread() { return settings.spread },
-	set spread( value ) { 
-		settings.spread = value;
-		core.mesh.options.spread = value;
-		core.mesh.compute();
-	},
-
-	get turbulence() { return settings.turbulence },
-	set turbulence( value ) { 
-		settings.turbulence = value;
-		core.mesh.options.turbulence = value;
-		core.mesh.compute();
-	},
-
-	get delay() { return settings.delay },
-	set delay( value ) { 
-		settings.delay = value;
-		core.mesh.shader.uniforms.uDelay.value = value;
-		autoLoopDuration();
-	},
-		
-	get duration() { return settings.duration },
-	set duration( value ) { 
-		settings.duration = value;
-		core.mesh.shader.uniforms.uDuration.value = value;
-		autoLoopDuration();
-	},
-
-	get stagger() { return settings.stagger },
-	set stagger( value ) {
-		settings.stagger = value;
-		core.mesh.shader.uniforms.uStagger.value = value;
-		autoLoopDuration();
-	},
-
-	get dynamics() { return settings.dynamics },
-	set dynamics( value ) {
-		settings.dynamics = value;
-		core.mesh.shader.uniforms.uDynamics.value = value;
-	},
-
-	get wind() { return settings.wind },
-	set wind( value ) { settings.wind = value },
-
-	get loopDuration() { return settings.loopDuration },
-	set loopDuration( value ) { settings.loopDuration = value; },
-
-	get reversed() { return settings.reversed },
-	set reversed( value ) {
-		settings.reversed = value;
-		core.mesh.options.reversed = value;
-		core.mesh.setChunks();
-	},
-
-	get easingFunction() { return settings.easingFunction },
-	set easingFunction( value ) {
-		settings.easingFunction = value;
-		settings.easing.f = value;
-		core.mesh.setChunks();
-	},
-
-	get easingCategory() { return settings.easingCategory },
-	set easingCategory( value ) {
-		settings.easingCategory = value;
-		settings.easing.category = value;
-		core.mesh.setChunks();
-	},
-
-	get grid() { return settings.grid },
-	set grid( value ) { 
-		settings.grid = value;
-		stage.grid.visible = value;
-	},
-	/*eslint-enable*/
+  get grid() {
+    return settings.grid;
+  },
+  set grid(value) {
+    settings.grid = value;
+    stage.grid.visible = value;
+  },
 };
 
-export { core  };
+export { core };

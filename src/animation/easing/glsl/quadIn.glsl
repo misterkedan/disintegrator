@@ -1,3 +1,3 @@
-float quadIn( float t ) {
+float quadIn(float t) {
 	return t * t;
 }

@@ -1,3 +1,3 @@
-float quintIn( float t ) {
-	return pow( t, 5.0 );
+float quintIn(float t) {
+	return pow(t, 5.0);
 }

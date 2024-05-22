@@ -1,3 +1,3 @@
-float cubicIn( float t ) {
+float cubicIn(float t) {
 	return t * t * t;
 }

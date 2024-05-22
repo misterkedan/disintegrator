@@ -7,146 +7,137 @@ import { FloatPack } from './gpgpu/FloatPack';
 import { SimplexComputer } from './gpgpu/SimplexComputer';
 
 class Disintegration extends Mesh {
+  constructor(
+    geometry,
+    material,
+    {
+      density,
+      reversed,
+      easing,
 
-	constructor(
-		geometry, material, {
+      // Tesselation
+      maxEdgeLength,
+      maxIterations,
 
-			density,
-			reversed,
-			easing,
+      // GPGPU
+      spread,
+      turbulence,
 
-			// Tesselation
-			maxEdgeLength,
-			maxIterations,
+      // Uniforms
+      stagger,
+      dynamics,
+      delay,
+      wind,
+      duration,
+    } = {}
+  ) {
+    const tesselator = new TessellateModifier(maxEdgeLength, maxIterations);
+    geometry = tesselator.modify(geometry);
 
-			// GPGPU
-			spread,
-			turbulence,
+    geometry = Disintegration.densify(geometry, density);
 
-			// Uniforms
-			stagger,
-			dynamics,
-			delay,
-			wind,
-			duration,
+    super(geometry, material);
 
-		} = {} ) {
+    this.options = {
+      reversed,
+      easing,
+      spread,
+      turbulence,
+      delay,
+      duration,
+      stagger,
+      dynamics,
+      wind,
+    };
 
-		const tesselator = new TessellateModifier( maxEdgeLength, maxIterations );
-		geometry = tesselator.modify( geometry );
+    this.setAttributes();
+    this.setChunks();
+    this.material.onBeforeCompile = this.onBeforeCompile.bind(this);
+  }
 
-		geometry = Disintegration.densify( geometry, density );
+  setAttributes() {
+    const { geometry } = this;
 
-		super( geometry, material );
+    const positions = geometry.attributes.position.array;
+    const totalVertices = geometry.attributes.position.count;
+    const totalFaces = Math.ceil(totalVertices / 3);
 
-		this.options = {
-			reversed, easing,
-			spread, turbulence,
-			delay, duration, stagger, dynamics, wind
-		};
+    const aNoise = new Float32Array(totalVertices);
+    const aDataCoord = new Float32Array(totalVertices * 2);
+    const aCentroid = new Float32Array(totalVertices * 3);
 
-		this.setAttributes();
-		this.setChunks();
-		this.material.onBeforeCompile = this.onBeforeCompile.bind( this );
+    const computeCentroid = Disintegration.computeCentroid;
 
-	}
+    for (let face = 0; face < totalFaces; face++) {
+      const i = face * 3;
+      const i2 = i * 2;
+      const i3 = i * 3;
 
-	setAttributes() {
+      const dataCoordX = (face % totalFaces) / totalFaces;
+      const dataCoordY = ~~(face / totalFaces) / totalFaces;
+      // ~ ~ is a less-legible, more performant bitwise Math.floor()
+      // Used only because we're dealing with large arrays
 
-		const { geometry } = this;
+      const noise = Math.random();
 
-		const positions = geometry.attributes.position.array;
-		const totalVertices = geometry.attributes.position.count;
-		const totalFaces = Math.ceil( totalVertices / 3 );
+      for (let vertex = 0; vertex < 3; vertex++) {
+        const j = i + vertex;
 
-		const aNoise = new Float32Array( totalVertices );
-		const aDataCoord = new Float32Array( totalVertices * 2 );
-		const aCentroid = new Float32Array( totalVertices * 3 );
+        aNoise[j] = noise;
 
-		const computeCentroid = Disintegration.computeCentroid;
+        const j2 = i2 + 2 * vertex;
 
-		for ( let face = 0; face < totalFaces; face ++ ) {
+        aDataCoord[j2] = dataCoordX;
+        aDataCoord[j2 + 1] = dataCoordY;
 
-			const i = face * 3;
-			const i2 = i * 2;
-			const i3 = i * 3;
+        const j3 = i3 + 3 * vertex;
 
-			const dataCoordX = ( face % totalFaces ) / totalFaces;
-			const dataCoordY = ~ ~ ( face / totalFaces ) / totalFaces;
-			// ~ ~ is a less-legible, more performant bitwise Math.floor()
-			// Used only because we're dealing with large arrays
+        aCentroid[j3] = computeCentroid(i3, positions);
+        aCentroid[j3 + 1] = computeCentroid(i3 + 1, positions);
+        aCentroid[j3 + 2] = computeCentroid(i3 + 2, positions);
+      }
+    }
 
-			const noise = Math.random();
+    geometry.setAttribute('aNoise', new BufferAttribute(aNoise, 1));
+    geometry.setAttribute('aDataCoord', new BufferAttribute(aDataCoord, 2));
+    geometry.setAttribute('aCentroid', new BufferAttribute(aCentroid, 3));
 
-			for ( let vertex = 0; vertex < 3; vertex ++ ) {
+    // GPGPU
+    const x = new SimplexComputer(totalFaces);
+    const y = new SimplexComputer(totalFaces);
+    const z = new SimplexComputer(totalFaces);
+    this.gpgpu = { x, y, z };
+    this.compute();
+  }
 
-				const j = i + ( vertex );
+  compute() {
+    const { gpgpu, shader, options } = this;
 
-				aNoise[ j ] = noise;
+    const { spread, turbulence } = options;
+    const spreadUniforms = {
+      uMin: { value: -spread },
+      uMax: { value: spread },
+      uScale: { value: turbulence },
+    };
 
-				const j2 = i2 + ( 2 * vertex );
+    Object.values(gpgpu).forEach((computer) => {
+      computer.uniforms = JSON.parse(JSON.stringify(spreadUniforms));
+      computer.uniforms.uSeed = { value: vesuna.random() };
+      computer.compute();
+    });
 
-				aDataCoord[   j2   ] = dataCoordX;
-				aDataCoord[ j2 + 1 ] = dataCoordY;
+    if (!shader) return;
+    const { uniforms } = shader;
+    uniforms.tNoiseX.value = gpgpu.x.texture;
+    uniforms.tNoiseY.value = gpgpu.y.texture;
+    uniforms.tNoiseZ.value = gpgpu.z.texture;
+  }
 
-				const j3 = i3 + ( 3 * vertex );
+  setChunks() {
+    const { options } = this;
+    const easing = options.easing;
 
-				aCentroid[   j3   ] = computeCentroid( i3, positions );
-				aCentroid[ j3 + 1 ] = computeCentroid( i3 + 1, positions );
-				aCentroid[ j3 + 2 ] = computeCentroid( i3 + 2, positions );
-
-			}
-
-		}
-
-		geometry.setAttribute( 'aNoise', new BufferAttribute( aNoise, 1 ) );
-		geometry.setAttribute( 'aDataCoord', new BufferAttribute( aDataCoord, 2 ) );
-		geometry.setAttribute( 'aCentroid', new BufferAttribute( aCentroid, 3 ) );
-
-		// GPGPU
-
-		const x = new SimplexComputer( totalFaces );
-		const y = new SimplexComputer( totalFaces );
-		const z = new SimplexComputer( totalFaces );
-		this.gpgpu = { x, y, z };
-		this.compute();
-
-	}
-
-	compute() {
-
-		const { gpgpu, shader, options } = this;
-
-		const { spread, turbulence } = options;
-		const spreadUniforms = {
-			uMin:   { value: - spread   },
-			uMax:   { value: spread     },
-			uScale: { value: turbulence },
-		};
-
-		Object.values( gpgpu ).forEach( computer => {
-
-			computer.uniforms = JSON.parse( JSON.stringify( spreadUniforms ) );
-			computer.uniforms.uSeed = { value: vesuna.random() };
-			computer.compute();
-
-		} );
-
-		if ( ! shader ) return;
-		const { uniforms } = shader;
-		uniforms.tNoiseX.value = gpgpu.x.texture;
-		uniforms.tNoiseY.value = gpgpu.y.texture;
-		uniforms.tNoiseZ.value = gpgpu.z.texture;
-
-	}
-
-	setChunks() {
-
-		const { options } = this;
-		const easing = options.easing;
-
-		const declarations = /*glsl*/`
-
+    const declarations = /*glsl*/ `
 			uniform float uTime;
 			uniform float uStagger;
 			uniform float uDynamics;
@@ -161,19 +152,16 @@ class Disintegration extends Mesh {
 			attribute vec2 aDataCoord;
 			attribute vec3 aCentroid;
 
-			${ FloatPack.glsl }
-			${ easing.glsl }
+			${FloatPack.glsl}
+			${easing.glsl}
 		`;
 
-		const reverseChunk = ( options.reversed )
-			? 'progress = 1.0 - progress;'
-			: '';
+    const reverseChunk = options.reversed ? 'progress = 1.0 - progress;' : '';
 
-		const modifications = /*glsl*/`
-
+    const modifications = /*glsl*/ `
 			float bias = 0.9;
 			float noiseDuration = clamp(
-				( 1.0 - aNoise ) * uDynamics * uDuration,
+				(1.0 - aNoise) * uDynamics * uDuration,
 				0.0,
 				0.9 * uDuration
 			);
@@ -182,117 +170,98 @@ class Disintegration extends Mesh {
 			float noiseDelay = aNoise * uStagger;
 			float delay = uDelay + noiseDelay;
 
-			float time = clamp( uTime - delay, 0.0, duration );
-			float progress =  clamp( time / duration, 0.0, 1.0 );
-			${ reverseChunk }
-			progress = ${easing.name}( progress );
+			float time = clamp(uTime - delay, 0.0, duration);
+			float progress =  clamp(time/duration, 0.0, 1.0);
+			${reverseChunk}
+			progress = ${easing.name}(progress);
 		
-			float scale = clamp( 1.0 - progress, 0.0, 1.0 );
+			float scale = clamp(1.0 - progress, 0.0, 1.0);
 			transformed -= aCentroid;
 			transformed *= scale;
 			transformed += aCentroid;
 		
-			float noiseX = unpack( texture2D( tNoiseX, aDataCoord ) );
-			float noiseY = unpack( texture2D( tNoiseY, aDataCoord ) );
-			float noiseZ = unpack( texture2D( tNoiseZ, aDataCoord ) );
+			float noiseX = unpack(texture2D(tNoiseX, aDataCoord));
+			float noiseY = unpack(texture2D(tNoiseY, aDataCoord));
+			float noiseZ = unpack(texture2D(tNoiseZ, aDataCoord));
 			
-			transformed.x += ( noiseX + uWind.x ) * progress;
-			transformed.y += ( noiseY + uWind.y ) * progress;
-			transformed.z += ( noiseZ + uWind.z ) * progress;
-
+			transformed.x += (noiseX + uWind.x) * progress;
+			transformed.y += (noiseY + uWind.y) * progress;
+			transformed.z += (noiseZ + uWind.z) * progress;
 		`;
 
-		this.chunks = { declarations, modifications };
-		this.material.dispose();
+    this.chunks = { declarations, modifications };
+    this.material.dispose();
+  }
 
-	}
+  onBeforeCompile(shader) {
+    const { gpgpu, options } = this;
+    const { duration, stagger, dynamics, delay, wind } = options;
 
-	onBeforeCompile( shader ) {
+    Object.assign(shader.uniforms, {
+      uTime: { value: 0 },
+      uStagger: { value: stagger },
+      uDynamics: { value: dynamics },
+      uDelay: { value: delay },
+      uDuration: { value: duration },
+      uWind: { value: wind },
+      tNoiseX: { value: gpgpu.x.texture },
+      tNoiseY: { value: gpgpu.y.texture },
+      tNoiseZ: { value: gpgpu.z.texture },
+    });
 
-		const { gpgpu, options } = this;
-		const { duration, stagger, dynamics, delay, wind } = options;
+    const main = 'void main()';
+    const vertex = '#include <begin_vertex>';
+    const { declarations, modifications } = this.chunks;
 
-		Object.assign( shader.uniforms, {
-			uTime: 		{ value: 0 },
-			uStagger: 	{ value: stagger },
-			uDynamics: 	{ value: dynamics },
-			uDelay: 	{ value: delay },
-			uDuration: 	{ value: duration },
-			uWind: 		{ value: wind },
-			tNoiseX: 	{ value: gpgpu.x.texture },
-			tNoiseY: 	{ value: gpgpu.y.texture },
-			tNoiseZ: 	{ value: gpgpu.z.texture },
-		} );
+    let { vertexShader } = shader;
+    vertexShader = vertexShader.replace(main, declarations + main);
+    vertexShader = vertexShader.replace(vertex, vertex + modifications);
+    shader.vertexShader = vertexShader;
 
-		const main = 'void main()';
-		const vertex = '#include <begin_vertex>';
-		const { declarations, modifications } = this.chunks;
+    this.shader = shader;
+  }
 
-		let { vertexShader } = shader;
-		vertexShader = vertexShader.replace( main, declarations + main );
-		vertexShader = vertexShader.replace( vertex, vertex + modifications );
-		shader.vertexShader = vertexShader;
+  update(time) {
+    this.shader.uniforms.uTime.value = time;
+  }
 
-		this.shader = shader;
+  dispose() {
+    this.geometry.dispose();
+    this.material.dispose();
+    Object.values(this.gpgpu).forEach((value) => value.dispose());
+  }
 
-	}
-
-	update( time ) {
-
-		this.shader.uniforms.uTime.value = time;
-
-	}
-
-	dispose() {
-
-		this.geometry.dispose();
-		this.material.dispose();
-		Object.values( this.gpgpu ).forEach( value => value.dispose() );
-
-
-	}
-
-	get totalVertices() {
-
-		return this.geometry.attributes.position.count;
-
-	}
-
+  get totalVertices() {
+    return this.geometry.attributes.position.count;
+  }
 }
 
-Disintegration.densify = ( geometry, density ) => {
+Disintegration.densify = (geometry, density) => {
+  if (density < 2 || !Number.isInteger(density) || !Number.isFinite(density))
+    return geometry;
 
-	if (
-		density < 2 ||
-		! Number.isInteger( density ) ||
-		! Number.isFinite( density )
-	) return geometry;
+  geometry.computeBoundingBox();
 
-	geometry.computeBoundingBox();
+  const box = geometry.boundingBox;
+  const minSize = Math.min(
+    box.max.x - box.min.x,
+    box.max.y - box.min.y,
+    box.max.z - box.min.z
+  );
+  const step = minSize * 0.01;
 
-	const box = geometry.boundingBox;
-	const minSize = Math.min(
-		box.max.x - box.min.x,
-		box.max.y - box.min.y,
-		box.max.z - box.min.z,
-	);
-	const step = minSize * 0.01;
+  let layeredGeometries = Array.from({ length: density - 1 }, (_, i) => {
+    const clone = geometry.clone();
+    const scale = 1 - step * (i + 1);
+    clone.scale(scale, scale, scale);
+    return clone;
+  });
+  layeredGeometries.unshift(geometry);
 
-	let layeredGeometries = Array.from( { length: density - 1 }, ( _, i ) => {
-
-		const clone = geometry.clone();
-		const scale = 1 - step * ( i + 1 );
-		clone.scale( scale, scale, scale );
-		return clone;
-
-	} );
-	layeredGeometries.unshift( geometry );
-
-	return mergeBufferGeometries( layeredGeometries );
-
+  return mergeBufferGeometries(layeredGeometries);
 };
 
-Disintegration.computeCentroid = ( i, pos ) =>
-	( pos[ i ] + pos[ i + 3 ] + pos[ i + 6 ] ) / 3;
+Disintegration.computeCentroid = (i, pos) =>
+  (pos[i] + pos[i + 3] + pos[i + 6]) / 3;
 
 export { Disintegration };

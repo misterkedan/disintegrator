@@ -41,128 +41,116 @@ import elasticOut from './glsl/elasticOut.glsl';
 import elasticInOut from './glsl/elasticInOut.glsl';
 
 class Easing {
+  constructor(f, category) {
+    this._f = f;
+    this._category = category;
+    this.update();
+  }
 
-	constructor( f, category ) {
+  update() {
+    const { f, category } = this;
+    let name = f + category;
 
-		this._f = f;
-		this._category = category;
-		this.update();
+    let glsl = Easing.glsl[name];
 
-	}
+    if (!glsl) {
+      name = 'linear';
+      glsl = Easing.glsl[name];
+    }
 
-	update() {
+    this._name = name;
+    this._glsl = glsl;
+  }
 
-		const { f, category } = this;
-		let name = f + category;
-
-		let glsl = Easing.glsl[ name ];
-
-		if ( ! glsl ) {
-
-			name = 'linear';
-			glsl = Easing.glsl[ name ];
-
-		}
-
-		this._name = name;
-		this._glsl = glsl;
-
-	}
-
-	/*-------------------------------------------------------------------------/
-
+  /*-------------------------------------------------------------------------/
 		Get/Set
-
 	/-------------------------------------------------------------------------*/
 
-	get f() {
+  get f() {
+    return this._f;
+  }
 
-		return this._f;
+  set f(value) {
+    this._f = value;
+    this.update();
+  }
 
-	}
+  get category() {
+    return this._category;
+  }
 
-	set f( value ) {
+  set category(value) {
+    this._category = value;
+    this.update();
+  }
 
-		this._f = value;
-		this.update();
-
-	}
-
-	get category() {
-
-		return this._category;
-
-	}
-
-	set category( value ) {
-
-		this._category = value;
-		this.update();
-
-	}
-
-	/*-------------------------------------------------------------------------/
-
+  /*-------------------------------------------------------------------------/
 		Read-only
-
 	/-------------------------------------------------------------------------*/
 
-	get name() {
+  get name() {
+    return this._name;
+  }
 
-		return this._name;
-
-	}
-
-	get glsl() {
-
-		return this._glsl;
-
-	}
-
+  get glsl() {
+    return this._glsl;
+  }
 }
 
 /*-----------------------------------------------------------------------------/
-
-	Static ( Read-Only )
-
+	Static (Read-Only)
 /-----------------------------------------------------------------------------*/
 
-Object.assign( Easing, {
+Object.assign(Easing, {
+  get glsl() {
+    return {
+      linear,
+      quadIn,
+      quadOut,
+      quadInOut,
+      cubicIn,
+      cubicOut,
+      cubicInOut,
+      quartIn,
+      quartOut,
+      quartInOut,
+      quintIn,
+      quintOut,
+      quintInOut,
+      expoIn,
+      expoOut,
+      expoInOut,
+      circIn,
+      circOut,
+      circInOut,
+      sineIn,
+      sineOut,
+      sineInOut,
+      backIn,
+      backOut,
+      backInOut,
+      bounceIn,
+      bounceOut,
+      bounceInOut,
+      elasticIn,
+      elasticOut,
+      elasticInOut,
+    };
+  },
 
-	get glsl() {
+  get functions() {
+    return [
+      ...new Set(
+        Object.keys(Easing.glsl).map((key) => {
+          return key.replace(/([a-z]*)(InOut|In|Out)/, '$1');
+        })
+      ),
+    ];
+  },
 
-		return {
-			linear,
-			quadIn, quadOut, quadInOut,
-			cubicIn, cubicOut, cubicInOut,
-			quartIn, quartOut, quartInOut,
-			quintIn, quintOut, quintInOut,
-			expoIn, expoOut, expoInOut,
-			circIn, circOut, circInOut,
-			sineIn, sineOut, sineInOut,
-			backIn, backOut, backInOut,
-			bounceIn, bounceOut, bounceInOut,
-			elasticIn, elasticOut, elasticInOut
-		};
-
-	},
-
-	get functions() {
-
-		return [ ... new Set( Object.keys( Easing.glsl ).map( key => {
-
-			return key.replace( /([a-z]*)(InOut|In|Out)/, '$1' );
-
-		} ) ) ];
-
-	},
-
-	get categories() {
-
-		return [ 'In', 'Out', 'InOut' ];
-
-	},
-
-} );
+  get categories() {
+    return ['In', 'Out', 'InOut'];
+  },
+});
 
 export { Easing };

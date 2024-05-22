@@ -2,7 +2,7 @@
 #define PI 3.141592653589793
 #endif
 
-float bounceOut( float t ) {
+float bounceOut(float t) {
 	const float a = 4.0 / 11.0;
 	const float b = 8.0 / 11.0;
 	const float c = 9.0 / 10.0;
