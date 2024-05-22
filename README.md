@@ -2,7 +2,7 @@
 
 ![Preview](preview.gif)
 
-[Live](https://www.kedan.com/projects/disintegrator/)  
+[Live](https://www.kedan.fr/projects/disintegrator/)  
 
 Real-time destruction of three.js meshes.
 
